@@ -2,6 +2,8 @@
 
 Benchmark outputs and figures from DeSTrOI, Transformer, and combined pipelines.
 
+**Project roadmap & findings:** see [README.md](../README.md) at repo root.
+
 ## Layout
 
 | Folder | Contents |
