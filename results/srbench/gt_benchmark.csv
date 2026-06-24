@@ -1,4 +1,2 @@
 id,problem,gt_formula,predicted,r2_test,fit_sec,error,benchmark,n_features,n_operators,nestedness,complexity,nest_category,ops,has_trig,has_exp_log,has_sqrt,has_div,has_pow
-0,feynman_III_10_19,mom*sqrt(Bx**2+By**2+Bz**2),,nan,nan,SymbolicTransformerRegressor.retrieve_tree() got an unexpected keyword argument 'tree_idx',feynman,4,7,1,medium,shallow,"add,mul,pow,sqrt",0,0,1,0,1
-1,feynman_III_12_43,n*(h/(2*pi)),,nan,nan,SymbolicTransformerRegressor.retrieve_tree() got an unexpected keyword argument 'tree_idx',feynman,2,3,2,simple,shallow,"div,mul",0,0,0,1,0
-2,feynman_III_13_18,2*E_n*d**2*k/(h/(2*pi)),,nan,nan,SymbolicTransformerRegressor.retrieve_tree() got an unexpected keyword argument 'tree_idx',feynman,4,7,2,medium,shallow,"div,mul,pow",0,0,0,1,1
+0,feynman_III_10_19,mom*sqrt(Bx**2+By**2+Bz**2),((-0.544 add (-0.21200000000000002 mul (-2.5694180914238527 add (0.8553154407109633 mul x_0)))) mul ((((9.6 mul (-2.6084059633118026 add (0.8656216113294617 mul x_3))) mul (-0.36100000000000004 add (0,0.9916993622897337,357.832612991333,,feynman,4,7,1,medium,shallow,"add,mul,pow,sqrt",0,0,1,0,1

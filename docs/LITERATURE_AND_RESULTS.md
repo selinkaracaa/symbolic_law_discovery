@@ -346,7 +346,7 @@ Each row: what the method **cannot do well**, what the field still **lacks**, an
 | **[uDSR](#udsr-2022)** | 2022 | **Heavy engineering** — 5 subsystems (GP, RL, LSPT, simplification, poly); slow end-to-end | Quick prototyping; single-GPU neural pipeline; modular ablation | Unified but not simple; hard to add one new prior | Plug DeSTrOI into `function_set` pruning · reproduce via SRBench harness |
 | **[SR4MDL](#sr4mdl-2025)** | 2025 | **Search + MDLformer cost**; needs checkpoint & MCTS/GP loop; newest, less reproduced | Noise robustness at scale; integration with existing E2E weights; operator-level priors | Combining MDL objective with cheap visual/structural priors | **We:** restrict grammar terminals via DeSTrOI before MDL search |
 | **[DeSTrOI (original)](#destroi-aaai-2021)** | 2021 | **Operator ID only** — does not output full formulas; 6-op vocab; 2D image encoding | `sub`, `div`, `exp`, `cos`; high-D native path (k>2 needs Keras fix); no transformer integration in original paper | End-to-end SR pipeline with modern transformers | **Our project:** wire DeSTrOI → Kamienny / TPSR / uDSR |
-| **[DeSTrOI + E2E (ours)](#our-work)** | — | **Modest gains so far**; wrong operator blocks hurt (74% ID acc synthetic); only Kamienny wired; D>2 uses 2-feature slice | Beating TPSR on SRBench; full 133 benchmark; noise & exact-recovery tests | DeSTrOI + MCTS; MIL for high-D; SRBench at scale | Phase A (10 problems) → TPSR ± DeSTrOI on lab GPU |
+| **[DeSTrOI + E2E (ours)](#our-work)** | — | **Modest gains so far**; mixed on 20 SRBench problems; only Kamienny wired | Full 133 benchmark; DeSTrOI + TPSR | DeSTrOI + TPSR on lab GPU |
 
 ---
 
@@ -427,7 +427,7 @@ Each row: what the method **cannot do well**, what the field still **lacks**, an
 | | |
 |--|--|
 | **Limitation** | Only **plain E2E** integrated; small SRBench sample; DeSTrOI hurts when wrong (34/100 synthetic cases worse). |
-| **Evidence** | Synthetic: 17% → 22% R²≥0.95; **Phase A (10 SRBench):** E2E 6/10 R²≥0.99, DeSTrOI+E2E 5/10, mean ΔR² **−0.04**, operator acc **55%**; no TPSR comparison yet. |
+| **Evidence** | Synthetic: 17% → 22% R²≥0.95; **20 SRBench:** E2E 7/20 R²≥0.99, DeSTrOI+E2E 6/20, mixed ΔR²; no TPSR yet. |
 | **Fails on** | Claiming SOTA; high-D without MIL projections; `inv` vs `div` mismatch on SRBench; **SRBench operator masking often neutral or harmful**. |
 | **What's missing** | DeSTrOI + TPSR on same 10 problems; noise sweep; exact recovery metric; 30–133 scale. |
 | **Next step** | **TPSR ± DeSTrOI on lab GPU** (mask may help when combined with search, not blind beam decode) → noise & recovery experiments. |
@@ -545,72 +545,37 @@ Each row: what the method **cannot do well**, what the field still **lacks**, an
 
 ---
 
-### D. SRBench Phase A — Subset A (10 problems, easier mix)
+### D. SRBench ground-truth — 20 problems (E2E vs DeSTrOI+E2E)
 
-**Setup:** 6 Feynman + 4 Strogatz · 75/25 split · seed=29910 · n_trees=10 · max_train_rows=2000  
-**Script:** [`benchmark_srbench_phase_a.py`](../benchmark_srbench_phase_a.py) · [`benchmark_subset_10.json`](../datasets/srbench/benchmark_subset_10.json)
-
-| Metric | Transformer alone | DeSTrOI + Transformer |
-|--------|-------------------|------------------------|
-| Mean R² | 0.828 | 0.786 |
-| Median R² | **0.992** | 0.991 |
-| R² ≥ 0.99 | **6 / 10** | 5 / 10 |
-| Feynman R²≥0.99 | **6 / 6** | — |
-| Strogatz R²≥0.99 | **0 / 4** | — |
-| DeSTrOI operator accuracy | — | **55%** |
-
-**Head-to-head:** mean ΔR² **−0.04** · better 0 · worse 2 · similar 8
-
-**CSV:** [phase_a_benchmark.csv](../results/srbench/phase_a_benchmark.csv) · [summary](../results/srbench/phase_a_benchmark_summary.txt)
-
-**Takeaway:** Easy Feynman picks (6/6 solved); Strogatz still fails. DeSTrOI neutral-to-harmful on 2 Strogatz (`predprey1`, `vdp1`).
-
----
-
-### D2. SRBench Phase A — Subset B (10 problems, harder mix)
-
-**Setup:** 6 harder Feynman + 4 different Strogatz · max_train_rows=1000  
-**Subset:** [`benchmark_subset_10_b.json`](../datasets/srbench/benchmark_subset_10_b.json)
+**Setup:** 12 Feynman + 8 Strogatz · 75/25 split · seed=29910 · n_trees=10  
+**Script:** [`benchmark_srbench_20.py`](../benchmark_srbench_20.py) · [`benchmark_subset_20.json`](../datasets/srbench/benchmark_subset_20.json)
 
 | Metric | Transformer alone | DeSTrOI + Transformer |
 |--------|-------------------|------------------------|
-| Mean R² | 0.684 | 0.753 |
-| Median R² | 0.961 | 0.961 |
-| R² ≥ 0.99 | **1 / 10** | 1 / 10 |
-| Feynman R²≥0.99 | **1 / 6** (17%) | — |
-| Strogatz R²≥0.99 | **0 / 4** (0%) | — |
-| DeSTrOI operator accuracy | — | **60%** |
+| Mean R² | 0.756 | 0.770 |
+| Median R² | 0.967 | 0.968 |
+| R² ≥ 0.99 | **7 / 20** | **6 / 20** |
+| R² ≥ 0.95 | 12 / 20 | 12 / 20 |
+| DeSTrOI operator accuracy | — | **58%** |
 
-**Head-to-head:** mean ΔR² **+0.07** · better 4 · worse 2 · similar 4
+**By group (E2E):**
 
-| Problem | E2E | DeSTrOI+E2E | ΔR² | Notes |
-|---------|-----|-------------|-----|-------|
-| feynman_III_19_51 | 0.889 | 0.869 | −0.02 | complex D=5 |
-| feynman_III_9_52 | 0.778 | 0.855 | **+0.08** | DeSTrOI helped |
-| feynman_I_9_18 | 0.976 | 0.976 | 0 | D=9; PyTorch mask bug fixed |
-| feynman_I_41_16 | 0.995 | 0.991 | −0.004 | both good |
-| strogatz_barmag2 | 0.245 | 0.579 | **+0.33** | DeSTrOI helped |
-| strogatz_shearflow2 | −0.92 | −0.62 | **+0.30** | both fail; DeSTrOI less bad |
+| Group | n | R²≥0.99 | Mean R² |
+|-------|---|---------|---------|
+| Feynman | 12 | **7 / 12** (58%) | 0.963 |
+| Strogatz | 8 | **0 / 8** (0%) | 0.445 |
 
-**CSV:** [phase_a_benchmark_subset_10_b.csv](../results/srbench/phase_a_benchmark_subset_10_b.csv) · [summary](../results/srbench/phase_a_benchmark_subset_10_b_summary.txt)
+**Head-to-head:** mean ΔR² **+0.01** · better 4 · worse 4 · similar 12
 
-**Takeaway:** Harder subset looks more like real SRBench difficulty (Feynman 17% vs subset A’s 100%). DeSTrOI can help on some Strogatz when operator mask is lucky — still not TPSR-level.
+Notable: DeSTrOI helped `strogatz_barmag2` (+0.33) and `shearflow2` (+0.30); hurt `strogatz_predprey1` (−0.15) and `strogatz_vdp1` (−0.27).
 
----
+**CSV:** [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) · [summary](../results/srbench/srbench_20_benchmark_summary.txt)
 
-### D3. Combined Phase A (20 problems, A + B)
-
-| Group | n | E2E R²≥0.99 | DeSTrOI+E2E R²≥0.99 |
-|-------|---|-------------|---------------------|
-| **All** | 20 | **7 / 20** (35%) | 6 / 20 |
-| Feynman | 12 | **7 / 12** (58%) | — |
-| Strogatz | 8 | **0 / 8** (0%) | — |
-
-*Not comparable to published 84.8% / 35.7% — those are over all 119 Feynman + 14 Strogatz, not our 20-problem pilot.*
+**Takeaway:** On this 20-problem pilot, Kamienny alone solves 7/20 at R²≥0.99 — not comparable to published 84.8% Feynman / 35.7% Strogatz (those are over all 119+14). DeSTrOI+E2E is mixed: small net gain on mean R², no clear win on success rate. Strogatz remains hard for plain E2E.
 
 ---
 
-### D4. SRBench ground-truth — Kamienny only (legacy single run)
+### D2. SRBench ground-truth — Kamienny only (legacy single run)
 
 **Setup:** 75/25 split · seed=29910 · n_trees=10 · max_train_rows=2000  
 **Script:** [`benchmark_srbench_gt.py`](../benchmark_srbench_gt.py)
@@ -684,4 +649,4 @@ A **catalog of all 133 ground-truth formulas** with labels: dimensions, operator
 
 ---
 
-*Last updated: Phase A complete (10 SRBench problems). See [phase_a_benchmark_summary.txt](../results/srbench/phase_a_benchmark_summary.txt).*
+*Last updated: 20-problem SRBench benchmark complete. See [srbench_20_benchmark_summary.txt](../results/srbench/srbench_20_benchmark_summary.txt).*

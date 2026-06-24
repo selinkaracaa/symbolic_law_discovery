@@ -17,7 +17,7 @@ Related docs:
         ↓
 [Phase 2: Limitation analysis]  ✅ DONE
         ↓
-[Phase 3: Benchmark showdown]  ⏳ IN PROGRESS (Phase A running)
+[Phase 3: Benchmark showdown]  ✅ 20 SRBench problems done
         ↓
 [Phase 4: Proposal & paper]  📋 NEXT
 ```
@@ -30,8 +30,8 @@ Related docs:
 |-------|------|--------|--------------|
 | **1** | Taxonomy & data for 133 SRBench ground-truth formulas | ✅ **Done** | [taxonomy.csv](../results/srbench/taxonomy.csv) · [summary](../results/srbench/taxonomy_summary.txt) · [problem_list.json](../datasets/srbench/problem_list.json) · `srbench_data.py` |
 | **2** | Map SOTA limitations; position DeSTrOI | ✅ **Done** | [Limitations table §7](LITERATURE_AND_RESULTS.md#7-limitations-gaps--next-steps-all-papers) · [LITERATURE](LITERATURE_AND_RESULTS.md) |
-| **3** | Run baselines ± DeSTrOI on SRBench | ⏳ **In progress** | [Phase A](../results/srbench/phase_a_benchmark.csv) (10 problems) · synthetic benchmarks done |
-| **4** | Proposal / paper write-up | 📋 **Next** | After Phase A + TPSR on lab server |
+| **3** | Run baselines ± DeSTrOI on SRBench | ✅ **20 problems** | [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) |
+| **4** | Proposal / paper write-up | 📋 **Next** | TPSR ± DeSTrOI on lab server |
 
 **Yes — Phases 1 and 2 are complete** for a proposal or professor meeting. Phase 3 needs Phase A results (and later TPSR on a GPU server) before claiming method comparisons on SRBench.
 
@@ -89,7 +89,7 @@ All **133** SRBench ground-truth problems (119 Feynman + 14 Strogatz) are catalo
 | Feynman = uniform random inputs | ✅ documented in taxonomy `benchmark` column |
 | Strogatz = time-ordered ODE trajectories | ✅ 14 problems; known transformer failure mode |
 
-**Phase A subset (10 problems):** [`datasets/srbench/benchmark_subset_10.json`](../datasets/srbench/benchmark_subset_10.json) — 6 Feynman + 4 Strogatz, balanced difficulty.
+**20-problem benchmark:** [`datasets/srbench/benchmark_subset_20.json`](../datasets/srbench/benchmark_subset_20.json) — 12 Feynman + 8 Strogatz.
 
 ---
 
@@ -175,9 +175,9 @@ Mostly **research** today, not production SR products.
 | Three-way synthetic | 100 | Comb 22% vs Trans 17% R²≥0.95 | [three_way/](../results/three_way/) |
 | Transformer in-domain | 100 | Median R² 0.999 | [indomain/](../results/transformer/indomain/) |
 | Taxonomy | 133 | Full catalog | [taxonomy.csv](../results/srbench/taxonomy.csv) |
-| **Phase A** SRBench | 10 | E2E: 6/10 R²≥0.99 · DeSTrOI+E2E: 5/10 · ΔR² mean **−0.04** | [phase_a_benchmark.csv](../results/srbench/phase_a_benchmark.csv) |
+| **SRBench 20** (E2E vs DeSTrOI+E2E) | 20 | E2E 7/20 R²≥0.99 · mixed ΔR² | [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) |
 
-**Phase A takeaway:** DeSTrOI did **not** help on SRBench at this scale — operator ID accuracy **55%** (vs 74% synthetic); hurts on `strogatz_predprey1` (−0.15) and `strogatz_vdp1` (−0.27). Feynman mostly unchanged. Next fair test: **DeSTrOI + TPSR** (operator mask + search).
+**Takeaway:** DeSTrOI+E2E is mixed on 20 SRBench problems — small mean ΔR² gain, no clear win on R²≥0.99 rate. Strogatz 0/8 for E2E. Next: **DeSTrOI + TPSR** on lab GPU.
 
 ### Planned (needs lab GPU)
 
@@ -206,13 +206,9 @@ Mostly **research** today, not production SR products.
 # Phase 1 — taxonomy (no GPU)
 python3 build_srbench_taxonomy.py
 
-# Phase 3 — Phase A (~2 h CPU)
-python3 benchmark_srbench_phase_a.py --max-train-rows 2000
-
-# Monitor
-tail -f results/logs/phase_a_run.log
+python3 benchmark_srbench_20.py --max-train-rows 2000
 ```
 
 ---
 
-*Last updated: Phase A complete (10 SRBench problems).*
+*Last updated: 20-problem SRBench benchmark complete.*

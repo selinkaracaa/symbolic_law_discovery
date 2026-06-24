@@ -1,34 +1,36 @@
 SRBench ground-truth benchmark — NeurIPS 2022 Transformer
-Problems run: 3
-Valid R²:     0
-Mean R²:      nan
-Median R²:    nan
-R² ≥ 0.99:   0 (nan%)  [SRBench/Kamienny metric]
-R² ≥ 0.95:    0 (nan%)
-R² < 0:       0 (nan%)
+Problems run: 1
+Valid R²:     1
+Mean R²:      0.9917
+Median R²:    0.9917
+R² ≥ 0.99:   1 (100.0%)  [SRBench/Kamienny metric]
+R² ≥ 0.95:    1 (100.0%)
+R² < 0:       0 (0.0%)
 
 Published reference (Kamienny et al. 2022, NeurIPS):
   ~4th on SRBench overall; competitive R²≥0.99 on Feynman;
   weaker on Strogatz (time-ordered ODE trajectories).
 
 By sub-benchmark:
+  feynman          n=  1  mean=0.992  median=0.992  ≥0.99:   1 (100%)
 
 By # features:
+  4                n=  1  mean=0.992  median=0.992  ≥0.99:   1 (100%)
 
 By operator count:
+  medium           n=  1  mean=0.992  median=0.992  ≥0.99:   1 (100%)
 
 By nestedness:
+  shallow          n=  1  mean=0.992  median=0.992  ≥0.99:   1 (100%)
 
 Has trig:
+  0                n=  1  mean=0.992  median=0.992  ≥0.99:   1 (100%)
 
 Has exp/log:
+  0                n=  1  mean=0.992  median=0.992  ≥0.99:   1 (100%)
 
 Worst 10:
-  R²=    nan  feynman   D=4 ops= 7  feynman_III_10_19
-  R²=    nan  feynman   D=2 ops= 3  feynman_III_12_43
-  R²=    nan  feynman   D=4 ops= 7  feynman_III_13_18
+  R²= 0.9917  feynman   D=4 ops= 7  feynman_III_10_19
 
 Best 10:
-  R²=    nan  feynman   D=4 ops= 7  feynman_III_10_19
-  R²=    nan  feynman   D=2 ops= 3  feynman_III_12_43
-  R²=    nan  feynman   D=4 ops= 7  feynman_III_13_18
+  R²= 0.9917  feynman   D=4 ops= 7  feynman_III_10_19

@@ -184,7 +184,7 @@ Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transform
 | Taxonomy summary | ✅ | [`results/srbench/taxonomy_summary.txt`](../results/srbench/taxonomy_summary.txt) |
 | PMLB data cache | ✅ Downloaded | `datasets/srbench/cache/` (gitignored) |
 | Problem list | ✅ | [`datasets/srbench/problem_list.json`](../datasets/srbench/problem_list.json) |
-| **Phase A** SRBench (E2E vs DeSTrOI+E2E, 10 problems) | ✅ Done | [`phase_a_benchmark.csv`](../results/srbench/phase_a_benchmark.csv) |
+| **SRBench 20** (E2E vs DeSTrOI+E2E) | ✅ Done | [`srbench_20_benchmark.csv`](../results/srbench/srbench_20_benchmark.csv) |
 | DeSTrOI + Transformer (synthetic) | ✅ 100 formulas | [`results/three_way/`](../results/three_way/) |
 
 ### Taxonomy at a glance
