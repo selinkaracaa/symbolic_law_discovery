@@ -1,0 +1,134 @@
+id,problem,benchmark,gt_formula,feature_names,destroi_compatible,destroi_ops_overlap,n_operators,nestedness,ops,has_trig,has_exp_log,has_sqrt,has_div,has_pow,n_features,complexity,nest_category
+0,feynman_III_10_19,feynman,mom*sqrt(Bx**2+By**2+Bz**2),"mom,Bx,By,Bz",1,"add,mul,sqrt",7,1,"add,mul,pow,sqrt",0,0,1,0,1,4,medium,shallow
+1,feynman_III_12_43,feynman,n*(h/(2*pi)),"n,h",1,mul,3,2,"div,mul",0,0,0,1,0,2,simple,shallow
+2,feynman_III_13_18,feynman,2*E_n*d**2*k/(h/(2*pi)),"E_n,d,k,h",1,mul,7,2,"div,mul,pow",0,0,0,1,1,4,medium,shallow
+3,feynman_III_14_14,feynman,I_0*(exp(q*Volt/(kb*T))-1),"I_0,q,Volt,kb,T",1,mul,5,3,"div,exp,mul",0,1,0,1,0,5,medium,medium
+4,feynman_III_15_12,feynman,2*U*(1-cos(k*d)),"U,k,d",1,mul,5,2,"cos,mul,sub",1,0,0,0,0,3,medium,shallow
+5,feynman_III_15_14,feynman,(h/(2*pi))**2/(2*E_n*d**2),"h,E_n,d",1,mul,7,2,"div,mul,pow",0,0,0,1,1,3,medium,shallow
+6,feynman_III_15_27,feynman,2*pi*alpha/(n*d),"alpha,n,d",1,mul,4,1,"div,mul",0,0,0,1,0,3,medium,shallow
+7,feynman_III_17_37,feynman,beta*(1+alpha*cos(theta)),"beta,alpha,theta",1,"add,mul",4,2,"add,cos,mul",1,0,0,0,0,3,medium,shallow
+8,feynman_III_19_51,feynman,-m*q**4/(2*(4*pi*epsilon)**2*(h/(2*pi))**2)*(1/n**2),"m,q,h,n,epsilon",1,mul,15,3,"div,mul,pow,sub",0,0,0,1,1,5,complex,medium
+9,feynman_III_21_20,feynman,-rho_c_0*q*A_vec/m,"rho_c_0,q,A_vec,m",1,mul,4,0,"div,mul,sub",0,0,0,1,0,4,medium,shallow
+10,feynman_III_4_32,feynman,1/(exp((h/(2*pi))*omega/(kb*T))-1),"h,omega,kb,T",1,mul,7,4,"div,exp,mul",0,1,0,1,0,4,medium,medium
+11,feynman_III_4_33,feynman,(h/(2*pi))*omega/(exp((h/(2*pi))*omega/(kb*T))-1),"h,omega,kb,T",1,mul,10,4,"div,exp,mul",0,1,0,1,0,4,complex,medium
+12,feynman_III_7_38,feynman,2*mom*B/(h/(2*pi)),"mom,B,h",1,mul,5,2,"div,mul",0,0,0,1,0,3,medium,shallow
+13,feynman_III_8_54,feynman,sin(E_n*t/(h/(2*pi)))**2,"E_n,t,h",1,"mul,sin",6,3,"div,mul,pow,sin",1,0,0,1,1,3,medium,medium
+14,feynman_III_9_52,feynman,(p_d*Ef*t/(h/(2*pi)))*sin((omega-omega_0)*t/2)**2/((omega-omega_0)*t/2)**2,"p_d,Ef,t,h,omega,omega_0",1,"mul,sin",16,3,"div,mul,pow,sin,sub",1,0,0,1,1,6,complex,medium
+15,feynman_II_10_9,feynman,sigma_den/epsilon*1/(1+chi),"sigma_den,epsilon,chi",1,"add,mul",4,1,"add,div,mul",0,0,0,1,0,3,medium,shallow
+16,feynman_II_11_20,feynman,n_rho*p_d**2*Ef/(3*kb*T),"n_rho,p_d,Ef,kb,T",1,mul,6,1,"div,mul,pow",0,0,0,1,1,5,medium,shallow
+17,feynman_II_11_27,feynman,n*alpha/(1-(n*alpha/3))*epsilon*Ef,"n,alpha,epsilon,Ef",1,mul,7,2,"div,mul,sub",0,0,0,1,0,4,medium,shallow
+18,feynman_II_11_28,feynman,1+n*alpha/(1-(n*alpha/3)),"n,alpha",1,"add,mul",6,2,"add,div,mul,sub",0,0,0,1,0,2,medium,shallow
+19,feynman_II_11_3,feynman,q*Ef/(m*(omega_0**2-omega**2)),"q,Ef,m,omega_0,omega",1,mul,6,2,"div,mul,pow,sub",0,0,0,1,1,5,medium,shallow
+20,feynman_II_13_17,feynman,1/(4*pi*epsilon*c**2)*2*I/r,"epsilon,c,I,r",1,mul,8,1,"div,mul,pow",0,0,0,1,1,4,medium,shallow
+21,feynman_II_13_23,feynman,rho_c_0/sqrt(1-v**2/c**2),"rho_c_0,v,c",1,sqrt,6,1,"div,pow,sqrt,sub",0,0,1,1,1,3,medium,shallow
+22,feynman_II_13_34,feynman,rho_c_0*v/sqrt(1-v**2/c**2),"rho_c_0,v,c",1,"mul,sqrt",7,1,"div,mul,pow,sqrt,sub",0,0,1,1,1,3,medium,shallow
+23,feynman_II_15_4,feynman,-mom*B*cos(theta),"mom,B,theta",1,mul,4,1,"cos,mul,sub",1,0,0,0,0,3,medium,shallow
+24,feynman_II_15_5,feynman,-p_d*Ef*cos(theta),"p_d,Ef,theta",1,mul,4,1,"cos,mul,sub",1,0,0,0,0,3,medium,shallow
+25,feynman_II_21_32,feynman,q/(4*pi*epsilon*r*(1-v/c)),"q,epsilon,r,v,c",1,mul,7,2,"div,mul,sub",0,0,0,1,0,5,medium,shallow
+26,feynman_II_24_17,feynman,sqrt(omega**2/c**2-pi**2/d**2),"omega,c,d",1,sqrt,8,1,"div,pow,sqrt,sub",0,0,1,1,1,3,medium,shallow
+27,feynman_II_27_16,feynman,epsilon*c*Ef**2,"epsilon,c,Ef",1,mul,3,0,"mul,pow",0,0,0,0,1,3,simple,shallow
+28,feynman_II_27_18,feynman,epsilon*Ef**2,"epsilon,Ef",1,mul,2,0,"mul,pow",0,0,0,0,1,2,simple,shallow
+29,feynman_II_2_42,feynman,kappa*(T2-T1)*A/d,"kappa,T1,T2,A,d",1,mul,4,1,"div,mul,sub",0,0,0,1,0,5,medium,shallow
+30,feynman_II_34_11,feynman,g_*q*B/(2*m),"g_,q,B,m",1,mul,4,1,"div,mul",0,0,0,1,0,4,medium,shallow
+31,feynman_II_34_2,feynman,q*v*r/2,"q,v,r",1,mul,3,0,"div,mul",0,0,0,1,0,3,simple,shallow
+32,feynman_II_34_29a,feynman,q*h/(4*pi*m),"q,h,m",1,mul,4,1,"div,mul",0,0,0,1,0,3,medium,shallow
+33,feynman_II_34_29b,feynman,g_*mom*B*Jz/(h/(2*pi)),"g_,h,Jz,mom,B",1,mul,6,2,"div,mul",0,0,0,1,0,5,medium,shallow
+34,feynman_II_34_2a,feynman,q*v/(2*pi*r),"q,v,r",1,mul,4,1,"div,mul",0,0,0,1,0,3,medium,shallow
+35,feynman_II_35_18,feynman,n_0/(exp(mom*B/(kb*T))+exp(-mom*B/(kb*T))),"n_0,kb,T,mom,B",1,"add,mul",11,3,"add,div,exp,mul,sub",0,1,0,1,0,5,complex,medium
+36,feynman_II_35_21,feynman,n_rho*mom*tanh(mom*B/(kb*T)),"n_rho,mom,B,kb,T",1,mul,5,2,"div,mul",0,0,0,1,0,5,medium,shallow
+37,feynman_II_36_38,feynman,mom*H/(kb*T)+(mom*alpha)/(epsilon*c**2*kb*T)*M,"mom,H,kb,T,alpha,epsilon,c,M",1,"add,mul",11,1,"add,div,mul,pow",0,0,0,1,1,8,complex,shallow
+38,feynman_II_37_1,feynman,mom*(1+chi)*B,"mom,B,chi",1,"add,mul",3,1,"add,mul",0,0,0,0,0,3,simple,shallow
+39,feynman_II_38_14,feynman,Y/(2*(1+sigma)),"Y,sigma",1,"add,mul",3,2,"add,div,mul",0,0,0,1,0,2,simple,shallow
+40,feynman_II_38_3,feynman,Y*A*x/d,"Y,A,d,x",1,mul,3,0,"div,mul",0,0,0,1,0,4,simple,shallow
+41,feynman_II_3_24,feynman,Pwr/(4*pi*r**2),"Pwr,r",1,mul,4,1,"div,mul,pow",0,0,0,1,1,2,medium,shallow
+42,feynman_II_4_23,feynman,q/(4*pi*epsilon*r),"q,epsilon,r",1,mul,4,1,"div,mul",0,0,0,1,0,3,medium,shallow
+43,feynman_II_6_11,feynman,1/(4*pi*epsilon)*p_d*cos(theta)/r**2,"epsilon,p_d,theta,r",1,mul,8,1,"cos,div,mul,pow",1,0,0,1,1,4,medium,shallow
+44,feynman_II_6_15a,feynman,p_d/(4*pi*epsilon)*3*z/r**5*sqrt(x**2+y**2),"epsilon,p_d,r,x,y,z",1,"add,mul,sqrt",12,1,"add,div,mul,pow,sqrt",0,0,1,1,1,6,complex,shallow
+45,feynman_II_6_15b,feynman,p_d/(4*pi*epsilon)*3*cos(theta)*sin(theta)/r**3,"epsilon,p_d,theta,r",1,"mul,sin",10,1,"cos,div,mul,pow,sin",1,0,0,1,1,4,complex,shallow
+46,feynman_II_8_31,feynman,epsilon*Ef**2/2,"epsilon,Ef",1,mul,3,0,"div,mul,pow",0,0,0,1,1,2,simple,shallow
+47,feynman_II_8_7,feynman,3/5*q**2/(4*pi*epsilon*d),"q,epsilon,d",1,mul,7,1,"div,mul,pow",0,0,0,1,1,3,medium,shallow
+48,feynman_I_10_7,feynman,m_0/sqrt(1-v**2/c**2),"m_0,v,c",1,sqrt,6,1,"div,pow,sqrt,sub",0,0,1,1,1,3,medium,shallow
+49,feynman_I_11_19,feynman,x1*y1+x2*y2+x3*y3,"x1,x2,x3,y1,y2,y3",1,"add,mul",5,0,"add,mul",0,0,0,0,0,6,medium,shallow
+50,feynman_I_12_1,feynman,mu*Nn,"mu,Nn",1,mul,1,0,mul,0,0,0,0,0,2,simple,shallow
+51,feynman_I_12_11,feynman,q*(Ef+B*v*sin(theta)),"q,Ef,B,v,theta",1,"add,mul,sin",5,2,"add,mul,sin",1,0,0,0,0,5,medium,shallow
+52,feynman_I_12_2,feynman,q1*q2*r/(4*pi*epsilon*r**3),"q1,q2,epsilon,r",1,mul,7,1,"div,mul,pow",0,0,0,1,1,4,medium,shallow
+53,feynman_I_12_4,feynman,q1*r/(4*pi*epsilon*r**3),"q1,epsilon,r",1,mul,6,1,"div,mul,pow",0,0,0,1,1,3,medium,shallow
+54,feynman_I_12_5,feynman,q2*Ef,"q2,Ef",1,mul,1,0,mul,0,0,0,0,0,2,simple,shallow
+55,feynman_I_13_12,feynman,G*m1*m2*(1/r2-1/r1),"m1,m2,r1,r2,G",1,mul,5,1,"div,mul",0,0,0,1,0,5,medium,shallow
+56,feynman_I_13_4,feynman,1/2*m*(v**2+u**2+w**2),"m,v,u,w",1,"add,mul",8,1,"add,div,mul,pow",0,0,0,1,1,4,medium,shallow
+57,feynman_I_14_3,feynman,m*g*z,"m,g,z",1,mul,2,0,mul,0,0,0,0,0,3,simple,shallow
+58,feynman_I_14_4,feynman,1/2*k_spring*x**2,"k_spring,x",1,mul,4,0,"div,mul,pow",0,0,0,1,1,2,medium,shallow
+59,feynman_I_15_10,feynman,m_0*v/sqrt(1-v**2/c**2),"m_0,v,c",1,"mul,sqrt",7,1,"div,mul,pow,sqrt,sub",0,0,1,1,1,3,medium,shallow
+60,feynman_I_15_3t,feynman,(t-u*x/c**2)/sqrt(1-u**2/c**2),"x,c,u,t",1,"mul,sqrt",10,1,"div,mul,pow,sqrt,sub",0,0,1,1,1,4,complex,shallow
+61,feynman_I_15_3x,feynman,(x-u*t)/sqrt(1-u**2/c**2),"x,u,c,t",1,"mul,sqrt",8,1,"div,mul,pow,sqrt,sub",0,0,1,1,1,4,medium,shallow
+62,feynman_I_16_6,feynman,(u+v)/(1+u*v/c**2),"c,v,u",1,"add,mul",6,1,"add,div,mul,pow",0,0,0,1,1,3,medium,shallow
+63,feynman_I_18_12,feynman,r*F*sin(theta),"r,F,theta",1,"mul,sin",3,1,"mul,sin",1,0,0,0,0,3,simple,shallow
+64,feynman_I_18_14,feynman,m*r*v*sin(theta),"m,r,v,theta",1,"mul,sin",4,1,"mul,sin",1,0,0,0,0,4,medium,shallow
+65,feynman_I_18_4,feynman,(m1*r1+m2*r2)/(m1+m2),"m1,m2,r1,r2",1,"add,mul",5,1,"add,div,mul",0,0,0,1,0,4,medium,shallow
+66,feynman_I_24_6,feynman,1/2*m*(omega**2+omega_0**2)*1/2*x**2,"m,omega,omega_0,x",1,"add,mul",10,1,"add,div,mul,pow",0,0,0,1,1,4,complex,shallow
+67,feynman_I_25_13,feynman,q/C,"q,C",1,,1,0,div,0,0,0,1,0,2,simple,shallow
+68,feynman_I_26_2,feynman,arcsin(n*sin(theta2)),"n,theta2",0,"mul,sin",3,2,"arcsin,mul,sin",1,0,0,0,0,2,simple,shallow
+69,feynman_I_27_6,feynman,1/(1/d1+n/d2),"d1,d2,n",1,add,4,1,"add,div",0,0,0,1,0,3,medium,shallow
+70,feynman_I_29_16,feynman,sqrt(x1**2+x2**2-2*x1*x2*cos(theta1-theta2)),"x1,x2,theta1,theta2",1,"add,mul,sqrt",9,2,"add,cos,mul,pow,sqrt,sub",1,0,1,0,1,4,complex,shallow
+71,feynman_I_29_4,feynman,omega/c,"omega,c",1,,1,0,div,0,0,0,1,0,2,simple,shallow
+72,feynman_I_30_3,feynman,Int_0*sin(n*theta/2)**2/sin(theta/2)**2,"Int_0,theta,n",1,"mul,sin",9,1,"div,mul,pow,sin",1,0,0,1,1,3,complex,shallow
+73,feynman_I_30_5,feynman,arcsin(lambd/(n*d)),"lambd,d,n",0,mul,3,2,"arcsin,div,mul",0,0,0,1,0,3,simple,shallow
+74,feynman_I_32_17,feynman,(1/2*epsilon*c*Ef**2)*(8*pi*r**2/3)*(omega**4/(omega**2-omega_0**2)**2),"epsilon,c,Ef,r,omega,omega_0",1,mul,17,2,"div,mul,pow,sub",0,0,0,1,1,6,complex,shallow
+75,feynman_I_32_5,feynman,q**2*a**2/(6*pi*epsilon*c**3),"q,a,epsilon,c",1,mul,8,1,"div,mul,pow",0,0,0,1,1,4,medium,shallow
+76,feynman_I_34_1,feynman,omega_0/(1-v/c),"c,v,omega_0",1,,3,1,"div,sub",0,0,0,1,0,3,simple,shallow
+77,feynman_I_34_14,feynman,(1+v/c)/sqrt(1-v**2/c**2)*omega_0,"c,v,omega_0",1,"add,mul,sqrt",9,1,"add,div,mul,pow,sqrt,sub",0,0,1,1,1,3,complex,shallow
+78,feynman_I_34_27,feynman,(h/(2*pi))*omega,"omega,h",1,mul,3,2,"div,mul",0,0,0,1,0,2,simple,shallow
+79,feynman_I_34_8,feynman,q*v*B/p,"q,v,B,p",1,mul,3,0,"div,mul",0,0,0,1,0,4,simple,shallow
+80,feynman_I_37_4,feynman,I1+I2+2*sqrt(I1*I2)*cos(delta),"I1,I2,delta",1,"add,mul,sqrt",7,1,"add,cos,mul,sqrt",1,0,1,0,0,3,medium,shallow
+81,feynman_I_38_12,feynman,4*pi*epsilon*(h/(2*pi))**2/(m*q**2),"m,q,h,epsilon",1,mul,9,2,"div,mul,pow",0,0,0,1,1,4,complex,shallow
+82,feynman_I_39_1,feynman,3/2*pr*V,"pr,V",1,mul,3,0,"div,mul",0,0,0,1,0,2,simple,shallow
+83,feynman_I_39_11,feynman,1/(gamma-1)*pr*V,"gamma,pr,V",1,mul,3,1,"div,mul",0,0,0,1,0,3,simple,shallow
+84,feynman_I_39_22,feynman,n*kb*T/V,"n,T,V,kb",1,mul,3,0,"div,mul",0,0,0,1,0,4,simple,shallow
+85,feynman_I_40_1,feynman,n_0*exp(-m*g*x/(kb*T)),"n_0,m,x,T,g,kb",1,mul,7,2,"div,exp,mul,sub",0,1,0,1,0,6,medium,shallow
+86,feynman_I_41_16,feynman,h/(2*pi)*omega**3/(pi**2*c**2*(exp((h/(2*pi))*omega/(kb*T))-1)),"omega,T,h,kb,c",1,mul,15,5,"div,exp,mul,pow",0,1,0,1,1,5,complex,deep
+87,feynman_I_43_16,feynman,mu_drift*q*Volt/d,"mu_drift,q,Volt,d",1,mul,3,0,"div,mul",0,0,0,1,0,4,simple,shallow
+88,feynman_I_43_31,feynman,mob*kb*T,"mob,T,kb",1,mul,2,0,mul,0,0,0,0,0,3,simple,shallow
+89,feynman_I_43_43,feynman,1/(gamma-1)*kb*v/A,"gamma,kb,A,v",1,mul,4,1,"div,mul",0,0,0,1,0,4,medium,shallow
+90,feynman_I_44_4,feynman,n*kb*T*ln(V2/V1),"n,kb,T,V1,V2",1,mul,4,1,"div,mul",0,0,0,1,0,5,medium,shallow
+91,feynman_I_47_23,feynman,sqrt(gamma*pr/rho),"gamma,pr,rho",1,"mul,sqrt",3,1,"div,mul,sqrt",0,0,1,1,0,3,simple,shallow
+92,feynman_I_48_2,feynman,m*c**2/sqrt(1-v**2/c**2),"m,v,c",1,"mul,sqrt",8,1,"div,mul,pow,sqrt,sub",0,0,1,1,1,3,medium,shallow
+93,feynman_I_50_26,feynman,x1*(cos(omega*t)+alpha*cos(omega*t)**2),"x1,omega,t,alpha",1,"add,mul",8,2,"add,cos,mul,pow",1,0,0,0,1,4,medium,shallow
+94,feynman_I_6_2,feynman,exp(-(theta/sigma)**2/2)/(sqrt(2*pi)*sigma),"sigma,theta",1,"mul,sqrt",9,2,"div,exp,mul,pow,sqrt,sub",0,1,1,1,1,2,complex,shallow
+95,feynman_I_6_2a,feynman,exp(-theta**2/2)/sqrt(2*pi),theta,1,"mul,sqrt",7,1,"div,exp,mul,pow,sqrt,sub",0,1,1,1,1,1,medium,shallow
+96,feynman_I_6_2b,feynman,exp(-((theta-theta1)/sigma)**2/2)/(sqrt(2*pi)*sigma),"sigma,theta,theta1",1,"mul,sqrt",10,3,"div,exp,mul,pow,sqrt,sub",0,1,1,1,1,3,complex,medium
+97,feynman_I_8_14,feynman,sqrt((x2-x1)**2+(y2-y1)**2),"x1,x2,y1,y2",1,"add,sqrt",6,2,"add,pow,sqrt,sub",0,0,1,0,1,4,medium,shallow
+98,feynman_I_9_18,feynman,G*m1*m2/((x2-x1)**2+(y2-y1)**2+(z2-z1)**2),"m1,m2,G,x1,x2,y1,y2,z1,z2",1,"add,mul",11,2,"add,div,mul,pow,sub",0,0,0,1,1,9,complex,shallow
+99,feynman_test_1,feynman,(Z_1*Z_2*alpha*hbar*c/(4*E_n*sin(theta/2)**2))**2,"Z_1,Z_2,alpha,hbar,c,E_n,theta",1,"mul,sin",11,3,"div,mul,pow,sin",1,0,0,1,1,7,complex,medium
+100,feynman_test_10,feynman,arccos((cos(theta2)-v/c)/(1-v/c*cos(theta2))),"c,v,theta2",0,mul,9,3,"arccos,cos,div,mul,sub",1,0,0,1,0,3,complex,medium
+101,feynman_test_11,feynman,I_0*(sin(alpha/2)*sin(n*delta/2)/(alpha/2*sin(delta/2)))**2,"I_0,alpha,delta,n",1,"mul,sin",13,3,"div,mul,pow,sin",1,0,0,1,1,4,complex,medium
+102,feynman_test_12,feynman,q/(4*pi*epsilon*y**2)*(4*pi*epsilon*Volt*d-q*d*y**3/(y**2-d**2)**2),"q,y,Volt,d,epsilon",1,mul,19,2,"div,mul,pow,sub",0,0,0,1,1,5,complex,shallow
+103,feynman_test_13,feynman,1/(4*pi*epsilon)*q/sqrt(r**2+d**2-2*r*d*cos(alpha)),"q,r,d,alpha,epsilon",1,"add,mul,sqrt",13,2,"add,cos,div,mul,pow,sqrt",1,0,1,1,1,5,complex,shallow
+104,feynman_test_14,feynman,Ef*cos(theta)*(-r+d**3/r**2*(alpha-1)/(alpha+2)),"Ef,theta,r,d,alpha",1,"add,mul",11,2,"add,cos,div,mul,pow,sub",1,0,0,1,1,5,complex,shallow
+105,feynman_test_15,feynman,sqrt(1-v**2/c**2)*omega/(1+v/c*cos(theta)),"c,v,omega,theta",1,"add,mul,sqrt",11,2,"add,cos,div,mul,pow,sqrt,sub",1,0,1,1,1,4,complex,shallow
+106,feynman_test_16,feynman,sqrt((p-q*A_vec)**2*c**2+m**2*c**4)+q*Volt,"m,c,p,q,A_vec,Volt",1,"add,mul,sqrt",12,2,"add,mul,pow,sqrt,sub",0,0,1,0,1,6,complex,shallow
+107,feynman_test_17,feynman,1/(2*m)*(p**2+m**2*omega**2*x**2*(1+alpha*x/y)),"m,omega,p,y,x,alpha",1,"add,mul",14,2,"add,div,mul,pow",0,0,0,1,1,6,complex,shallow
+108,feynman_test_18,feynman,3/(8*pi*G)*(c**2*k_f/r**2+H_G**2),"G,k_f,r,H_G,c",1,"add,mul",10,1,"add,div,mul,pow",0,0,0,1,1,5,complex,shallow
+109,feynman_test_19,feynman,-1/(8*pi*G)*(c**4*k_f/r**2+H_G**2*c**2*(1-2*alpha)),"G,k_f,r,H_G,alpha,c",1,"add,mul",14,2,"add,div,mul,pow",0,0,0,1,1,6,complex,shallow
+110,feynman_test_2,feynman,m*k_G/L**2*(1+sqrt(1+2*E_n*L**2/(m*k_G**2))*cos(theta1-theta2)),"m,k_G,L,E_n,theta1,theta2",1,"add,mul,sqrt",16,3,"add,cos,div,mul,pow,sqrt,sub",1,0,1,1,1,6,complex,medium
+111,feynman_test_20,feynman,1/(4*pi)*alpha**2*h**2/(m**2*c**2)*(omega_0/omega)**2*(omega_0/omega+omega/omega_0-sin(beta)**2),"omega,omega_0,alpha,h,m,c,beta",1,"add,mul,sin",20,2,"add,div,mul,pow,sin,sub",1,0,0,1,1,7,complex,shallow
+112,feynman_test_3,feynman,d*(1-alpha**2)/(1+alpha*cos(theta1-theta2)),"d,alpha,theta1,theta2",1,"add,mul",8,2,"add,cos,div,mul,pow,sub",1,0,0,1,1,4,medium,shallow
+113,feynman_test_4,feynman,sqrt(2/m*(E_n-U-L**2/(2*m*r**2))),"m,E_n,U,L,r",1,"mul,sqrt",10,3,"div,mul,pow,sqrt,sub",0,0,1,1,1,5,complex,medium
+114,feynman_test_5,feynman,2*pi*d**(3/2)/sqrt(G*(m1+m2)),"d,G,m1,m2",1,"add,mul,sqrt",8,2,"add,div,mul,pow,sqrt",0,0,1,1,1,4,medium,shallow
+115,feynman_test_6,feynman,sqrt(1+2*epsilon**2*E_n*L**2/(m*(Z_1*Z_2*q**2)**2)),"epsilon,L,m,Z_1,Z_2,q,E_n",1,"add,mul,sqrt",13,3,"add,div,mul,pow,sqrt",0,0,1,1,1,7,complex,medium
+116,feynman_test_7,feynman,sqrt(8*pi*G*rho/3-alpha*c**2/d**2),"G,rho,alpha,c,d",1,"mul,sqrt",10,1,"div,mul,pow,sqrt,sub",0,0,1,1,1,5,complex,shallow
+117,feynman_test_8,feynman,E_n/(1+E_n/(m*c**2)*(1-cos(theta))),"E_n,m,c,theta",1,"add,mul",8,3,"add,cos,div,mul,pow,sub",1,0,0,1,1,4,medium,medium
+118,feynman_test_9,feynman,-32/5*G**4/c**5*(m1*m2)**2*(m1+m2)/r**5,"G,c,m1,m2,r",1,"add,mul",12,1,"add,div,mul,pow",0,0,0,1,1,5,complex,shallow
+119,strogatz_bacres1,strogatz,20 - x - (x * y)/(1+0.5 * x**2),"x,y",1,"add,mul",7,1,"add,div,mul,pow,sub",0,0,0,1,1,2,medium,shallow
+120,strogatz_bacres2,strogatz,10 - (x * y)/(1+0.5 * x**2),"x,y",1,"add,mul",6,1,"add,div,mul,pow,sub",0,0,0,1,1,2,medium,shallow
+121,strogatz_barmag1,strogatz,0.5 * sin(x - y) - sin(x),"x,y",1,"mul,sin",5,1,"mul,sin,sub",1,0,0,0,0,2,medium,shallow
+122,strogatz_barmag2,strogatz,0.5 * sin(y - x) - sin(y),"x,y",1,"mul,sin",5,1,"mul,sin,sub",1,0,0,0,0,2,medium,shallow
+123,strogatz_glider1,strogatz,-0.05 * x**2 - sin(y),"x,y",1,"mul,sin",4,1,"mul,pow,sin,sub",1,0,0,0,1,2,medium,shallow
+124,strogatz_glider2,strogatz,x - cos(y)/x,"x,y",1,,3,1,"cos,div,sub",1,0,0,1,0,2,simple,shallow
+125,strogatz_lv1,strogatz,3  * x - 2  * x * y - x**2,"x,y",1,mul,6,0,"mul,pow,sub",0,0,0,0,1,2,medium,shallow
+126,strogatz_lv2,strogatz,2 * y - x * y - y**2,"x,y",1,mul,5,0,"mul,pow,sub",0,0,0,0,1,2,medium,shallow
+127,strogatz_predprey1,strogatz,x  * ( 4 - x - (y)/(1+x) ),"x,y",1,"add,mul",5,2,"add,div,mul,sub",0,0,0,1,0,2,medium,shallow
+128,strogatz_predprey2,strogatz,y * ( (x)/(1+x) - 0.075 * y ),"x,y",1,"add,mul",5,2,"add,div,mul,sub",0,0,0,1,0,2,medium,shallow
+129,strogatz_shearflow1,strogatz,cot(y) * cos(x),"x,y",0,mul,3,1,"cos,cot,mul",1,0,0,0,0,2,simple,shallow
+130,strogatz_shearflow2,strogatz,(cos(y)**2 + 0.1 *  sin(y)**2) * sin(x),"x,y",1,"add,mul,sin",8,2,"add,cos,mul,pow,sin",1,0,0,0,1,2,medium,shallow
+131,strogatz_vdp1,strogatz,10 *  (y - (1)/(3) * (x**3-x)),"x,y",1,mul,6,2,"div,mul,pow,sub",0,0,0,1,1,2,medium,shallow
+132,strogatz_vdp2,strogatz,-(1)/(10) * x,"x,y",1,mul,3,1,"div,mul,sub",0,0,0,1,0,2,simple,shallow

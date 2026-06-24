@@ -1,8 +1,9 @@
 # Symbolic Regression × Transformers × DeSTrOI  
-**Extended notes** · June 2025  
+**Extended meeting notes** · June 2025  
 
-> **Main repo page:** see [README.md](../README.md) for roadmap, findings, and quick reference.  
-> This file has fuller literature summaries and meeting talking points.
+> **Main documentation:**  
+> - [README.md](../README.md) — roadmap & quick findings  
+> - [**LITERATURE_AND_RESULTS.md**](LITERATURE_AND_RESULTS.md) — **detailed paper summaries (TPSR-style) + all result tables**
 
 **Repo:** [github.com/selinkaracaa/symbolic_law_discovery](https://github.com/selinkaracaa/symbolic_law_discovery)
 

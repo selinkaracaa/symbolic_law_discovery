@@ -1,0 +1,20 @@
+SRBench ground-truth taxonomy — 133 problems
+  Feynman:  119
+  Strogatz: 14
+  DeSTrOI-compatible (heuristic): 129
+
+By complexity:
+  simple   n=28
+  medium   n=70
+  complex  n=35
+
+By n_features:
+  D=1  n=1
+  D=2  n=29
+  D=3  n=37
+  D=4  n=32
+  D=5  n=20
+  D=6  n=9
+  D=7  n=3
+  D=8  n=1
+  D=9  n=1
