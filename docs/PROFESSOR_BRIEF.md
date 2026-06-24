@@ -3,7 +3,8 @@
 
 > **Main documentation:**  
 > - [README.md](../README.md) — roadmap & quick findings  
-> - [**LITERATURE_AND_RESULTS.md**](LITERATURE_AND_RESULTS.md) — **detailed paper summaries (TPSR-style) + all result tables**
+> - [**LITERATURE_AND_RESULTS.md**](LITERATURE_AND_RESULTS.md) — **detailed paper summaries (TPSR-style) + all result tables**  
+> - [**RESEARCH_ROADMAP.md**](RESEARCH_ROADMAP.md) — **Phases 1–4 plan, why we picked the 6 strategic questions, completion status**
 
 **Repo:** [github.com/selinkaracaa/symbolic_law_discovery](https://github.com/selinkaracaa/symbolic_law_discovery)
 
@@ -13,7 +14,9 @@
 
 Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transformers can propose formulas in one forward pass, but **search, recovery, and OOD data** remain open. The field’s answer is **hybrids** (MCTS, GP, MDL objectives)—not pure transformers alone.
 
-**Our contribution (in progress):** DeSTrOI as a **visual operator-identification prior** that constrains transformer decoding *before* search—cheaper than full MCTS, complementary to TPSR/uDSR-style pipelines.
+**Our contribution (in progress):** DeSTrOI as a **visual operator-identification prior** stacked **on top of** existing SR methods (Kamienny, TPSR, uDSR…) to prune the operator search space cheaply.
+
+**Important — what we are NOT claiming:** We have **not** beaten TPSR. We only wired DeSTrOI to the **plain Kamienny transformer** (no MCTS). Our synthetic benchmark shows a **modest** gain (17% → 22% R²≥0.95) with real failures when DeSTrOI mis-identifies operators. The fair test — **DeSTrOI + TPSR vs TPSR alone on SRBench** — is future work.
 
 **What we have today:** working DeSTrOI + Kamienny transformer pipeline, synthetic benchmarks, **full taxonomy of 133 SRBench ground-truth problems**, and early SRBench transformer runs. **What’s next:** run Kamienny/TPSR/uDSR/SR4MDL on SRBench ± DeSTrOI (blocked on compute + per-method integration).
 
@@ -51,11 +54,22 @@ Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transform
 - Often overfits with bloated formulas or misses the true structure.
 
 ### TPSR solution (step by step)
-1. **Selection** — MCTS picks which partial expression to expand.
-2. **Expansion** — Transformer proposes likely next symbols (not random).
-3. **Evaluation** — Beam search **simulates** completing the equation.
-4. **Reward** — Grade completed candidates: **accuracy + λ·complexity**.
-5. **Backprop** — Update which symbol choices were good.
+
+**Every time TPSR needs to choose the next symbol in a formula**, it runs this loop:
+
+1. **Selection** — The AI looks at its current partial equation and decides which mathematical paths are worth exploring, balancing formulas that already look promising with unexplored operator branches (MCTS exploit vs explore).
+
+2. **Expansion** — Instead of guessing randomly from all possible symbols, it asks the pre-trained transformer to narrow down options to a few highly likely next steps (e.g. `+` vs `sin`).
+
+3. **Evaluation** — You can’t test a half-finished equation. TPSR uses **beam search** to quickly simulate finishing the formula to the end, producing complete candidates that can be scored on the data.
+
+4. **Reward** — Completed test equations are graded: **fitting accuracy** (how well the formula matches the data) plus **λ × complexity penalty** (penalizing bloated, overly long equations).
+
+5. **Backpropagation** — That score flows backward so the system learns which symbol choice was actually best — not just the most probable next token.
+
+**λ:** λ=0 → accuracy only (often bloated formulas); λ=0.1 → recommended balance; λ=1 → heavy simplicity penalty.
+
+**One line:** *Same transformer backbone, but it “thinks ahead” with MCTS instead of blind guessing.*
 
 ### Published SRBench results (from paper; λ = complexity weight)
 
@@ -129,6 +143,8 @@ Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transform
 
 # Part 2 — Strategic questions
 
+> **Why these questions?** Chosen to validate novelty, feasibility, and impact before benchmarking — aligned with the post-2022 SR trajectory (transformers → OOD failures → hybrids). Full rationale: [**RESEARCH_ROADMAP.md § Why these 6 questions**](RESEARCH_ROADMAP.md#why-these-6-strategic-questions).
+
 | # | Question | Answer |
 |---|----------|--------|
 | **1** | Is SR well-studied and **solved**? | **Well-studied, not solved.** SRBench shows no single method wins everywhere. **Exact recovery** under noise is still hard. |
@@ -168,7 +184,7 @@ Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transform
 | Taxonomy summary | ✅ | [`results/srbench/taxonomy_summary.txt`](../results/srbench/taxonomy_summary.txt) |
 | PMLB data cache | ✅ Downloaded | `datasets/srbench/cache/` (gitignored) |
 | Problem list | ✅ | [`datasets/srbench/problem_list.json`](../datasets/srbench/problem_list.json) |
-| Kamienny on SRBench | ⏳ 1/133 | [`results/srbench/gt_benchmark.csv`](../results/srbench/gt_benchmark.csv) |
+| **Phase A** SRBench (E2E vs DeSTrOI+E2E, 10 problems) | ✅ Done | [`phase_a_benchmark.csv`](../results/srbench/phase_a_benchmark.csv) |
 | DeSTrOI + Transformer (synthetic) | ✅ 100 formulas | [`results/three_way/`](../results/three_way/) |
 
 ### Taxonomy at a glance
@@ -183,6 +199,8 @@ Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transform
 ---
 
 # Part 4 — Pros & cons comparison
+
+> **Detailed limitations, gaps, and next steps for every paper:** [LITERATURE_AND_RESULTS.md §7](LITERATURE_AND_RESULTS.md#7-limitations-gaps--next-steps-all-papers)
 
 | Method | Year | Core mechanism | Pros | Cons |
 |--------|------|----------------|------|------|
