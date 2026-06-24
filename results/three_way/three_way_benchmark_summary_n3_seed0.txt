@@ -1,0 +1,27 @@
+Total formulas: 3
+Mean DeSTrOI acc:     77.8%
+Mean Transformer R²:  -0.5099
+Mean Combined R²:     -0.4318
+Mean ΔR² (Comb-Trans): +0.0781
+
+Trans R² ≥ 0.95:  0 (0%)
+Comb R² ≥ 0.95:   0 (0%)
+Trans R² < 0:     3 (100%)
+Comb R² < 0:      3 (100%)
+
+Combined better (ΔR² > 0.005):  2
+Combined worse  (ΔR² < -0.005): 1
+Similar         (|ΔR²| ≤ 0.005): 0
+
+By feature (Transformer R² | Combined R² | fail% trans):
+  no inv             n=  3  trans=-0.510  comb=-0.432  Δ=+0.078  fail%=100
+
+Biggest Combined wins (ΔR²):
+  Δ=+0.3206  trans=-0.544  comb=-0.224  add(sin(X1),sin(X0))
+  Δ=+0.0090  trans=-0.303  comb=-0.294  log(sin(X1))
+  Δ=-0.0952  trans=-0.682  comb=-0.777  sin(mul(mul(log(X0),log(X1)),log(X1)))
+
+Biggest Combined losses (ΔR²):
+  Δ=-0.0952  trans=-0.682  comb=-0.777  sin(mul(mul(log(X0),log(X1)),log(X1)))
+  Δ=+0.0090  trans=-0.303  comb=-0.294  log(sin(X1))
+  Δ=+0.3206  trans=-0.544  comb=-0.224  add(sin(X1),sin(X0))

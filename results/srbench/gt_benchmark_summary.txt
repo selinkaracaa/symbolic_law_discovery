@@ -1,0 +1,34 @@
+SRBench ground-truth benchmark — NeurIPS 2022 Transformer
+Problems run: 3
+Valid R²:     0
+Mean R²:      nan
+Median R²:    nan
+R² ≥ 0.99:   0 (nan%)  [SRBench/Kamienny metric]
+R² ≥ 0.95:    0 (nan%)
+R² < 0:       0 (nan%)
+
+Published reference (Kamienny et al. 2022, NeurIPS):
+  ~4th on SRBench overall; competitive R²≥0.99 on Feynman;
+  weaker on Strogatz (time-ordered ODE trajectories).
+
+By sub-benchmark:
+
+By # features:
+
+By operator count:
+
+By nestedness:
+
+Has trig:
+
+Has exp/log:
+
+Worst 10:
+  R²=    nan  feynman   D=4 ops= 7  feynman_III_10_19
+  R²=    nan  feynman   D=2 ops= 3  feynman_III_12_43
+  R²=    nan  feynman   D=4 ops= 7  feynman_III_13_18
+
+Best 10:
+  R²=    nan  feynman   D=4 ops= 7  feynman_III_10_19
+  R²=    nan  feynman   D=2 ops= 3  feynman_III_12_43
+  R²=    nan  feynman   D=4 ops= 7  feynman_III_13_18

@@ -1,0 +1,33 @@
+Total formulas: 100
+Mean DeSTrOI acc:     74.3%
+Mean Transformer R²:  -32.2004
+Mean Combined R²:     -36.4969
+Mean ΔR² (Comb-Trans): -4.2965
+
+Trans R² ≥ 0.95:  17 (17%)
+Comb R² ≥ 0.95:   22 (22%)
+Trans R² < 0:     38 (38%)
+Comb R² < 0:      33 (33%)
+
+Combined better (ΔR² > 0.005):  42
+Combined worse  (ΔR² < -0.005): 34
+Similar         (|ΔR²| ≤ 0.005): 24
+
+By feature (Transformer R² | Combined R² | fail% trans):
+  has inv            n= 52  trans=-61.564  comb=-69.698  Δ=-8.134  fail%=60
+  no inv             n= 48  trans=-0.390  comb=-0.529  Δ=-0.139  fail%=46
+  mul+2 unaries      n=  5  trans=0.288  comb=-1.755  Δ=-2.044  fail%=60
+
+Biggest Combined wins (ΔR²):
+  Δ=+2100.3641  trans=-2102.159  comb=-1.795  inv(log(inv(sin(X1))))
+  Δ=+976.7308  trans=-1004.490  comb=-27.759  mul(add(sin(X0),inv(sin(X1))),mul(-0.460583998868201,X0))
+  Δ=+37.1663  trans=-37.096  comb=0.071  mul(add(sin(X1),log(mul(X1,X0))),inv(X0))
+  Δ=+2.7722  trans=-3.063  comb=-0.291  inv(log(X0))
+  Δ=+1.4248  trans=-1.703  comb=-0.278  add(sin(sqrt(X1)),log(inv(sin(X0))))
+
+Biggest Combined losses (ΔR²):
+  Δ=-3049.3045  trans=-1.850  comb=-3051.155  add(sqrt(inv(log(X1))),sin(inv(sin(X0))))
+  Δ=-479.4244  trans=-0.014  comb=-479.438  inv(sin(X1))
+  Δ=-9.9422  trans=-0.372  comb=-10.314  mul(sin(X1),log(log(X0)))
+  Δ=-5.1549  trans=-0.408  comb=-5.563  mul(add(inv(mul(X1,X0)),0.5419527253947425),inv(X1))
+  Δ=-3.7832  trans=-56.508  comb=-60.291  inv(sin(X1))

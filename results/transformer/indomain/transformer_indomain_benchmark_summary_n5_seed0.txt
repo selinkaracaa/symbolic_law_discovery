@@ -1,0 +1,20 @@
+In-domain benchmark (transformer generator, 18-op vocab)
+Total formulas: 5
+Valid R²:       5
+Mean R²:        0.8024
+Median R²:      0.9996
+R² ≥ 0.95:      4 (80%)
+R² ≥ 0.50:      4 (80%)
+R² < 0:         0 (0%)
+Exact recovery: 0 (0%)
+
+By feature:
+  has inv                 n=  2  mean=0.507  median=0.507  fail%=50
+  no inv/div              n=  3  mean=0.999  median=1.000  fail%=0
+
+Worst 5:
+  R²= 0.0144  (17.5 add (x_1 mul ((-63.400000000000006 mul inv(((-0.847 mul cos((0.8
+  R²= 0.9983  (-9.700000000000001 add (x_1 mul (((-0.925 mul x_1) add (-0.9450000000
+  R²= 0.9996  (-2.29 add ((70.2 mul x_1) add (-2.88 mul (((0.154 mul (((-7.44 add (8
+  R²= 1.0000  (9.790000000000001 add (0.637 mul (x_1 mul x_0)))
+  R²= 1.0000  (-45.800000000000004 add ((-78.10000000000001 mul ((x_0 mul (x_1 mul x

@@ -1,0 +1,25 @@
+Total formulas: 100
+Valid R²:       100
+Mean R²:        0.1625
+Median R²:      0.7305
+R² ≥ 0.95:      21 (21%)
+R² ≥ 0.50:      62 (62%)
+R² < 0:         30 (30%)
+
+By feature:
+  has inv                 n= 53  mean=0.046  median=0.839  fail%=36
+  has log                 n=  61  mean=-0.002  median=0.685  fail%=43
+  mul+2 unaries           n=  6  mean=-2.086  median=-0.446  fail%=83
+  no inv                  n= 47  mean=0.293  median=0.648  fail%=40
+
+Worst 10:
+  R²=-11.1673  mul(inv(mul(log(X1),sin(X1))),log(X0))
+  R²=-5.1811  add(sin(inv(log(X0))),log(sin(log(X0))))
+  R²=-4.4482  log(mul(inv(X0),X0))
+  R²=-2.3533  inv(log(X0))
+  R²=-1.9825  inv(mul(sin(add(-0.03432322370770913,X1)),sin(X0)))
+  R²=-1.9101  log(sin(X0))
+  R²=-1.3821  sin(mul(log(log(X1)),mul(X1,sin(X1))))
+  R²=-1.1792  sqrt(mul(sqrt(sin(X1)),mul(inv(X1),sin(X0))))
+  R²=-1.1499  mul(sqrt(mul(X1,X1)),sin(X1))
+  R²=-1.1070  sin(add(log(mul(X0,X0)),X1))

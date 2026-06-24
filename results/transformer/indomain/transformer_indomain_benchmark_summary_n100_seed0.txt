@@ -1,0 +1,19 @@
+In-domain benchmark (transformer generator, 18-op vocab)
+Total formulas: 100
+Valid R²:       100
+Mean R²:        -2.4174
+Median R²:      0.9992
+R² ≥ 0.95:      74 (74%)
+R² ≥ 0.50:      80 (80%)
+R² < 0:         14 (14%)
+Exact recovery: 0 (0%)
+
+By feature:
+  (op tags missing for log-recovered rows)
+
+Worst 5:
+  R²=-189.6125  (5.74 add (x_0 mul ((-2.84 add (-0.36 mul (inv(((9.26 mul inv((86.0 ad
+  R²=-47.5384  (8.92 add ((((86.5 mul x_1) sub (1.83 mul tan((-2.04 add (0.639 mul x_
+  R²=-44.5148  (recovered from log)
+  R²=-25.8690  (14.8 add ((((-37.2 mul ((-61.800000000000004 add (-0.541 mul x_1)))**
+  R²=-4.6303  (recovered from log)

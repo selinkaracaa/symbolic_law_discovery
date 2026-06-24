@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.vendor/
+
+# OS
+.DS_Store
+
+# Large model weights (download separately)
+symbolicregression/model.pt
+Symbolic-Prediction-master/weights/*.h5
+Symbolic-Prediction-master/weights/*.zip
+Symbolic-Prediction-master/weights/pretrained*/
+
+# Downloaded benchmark data (re-fetch via srbench_data.py)
+datasets/srbench/cache/
+
+# Logs (optional; remove this line to commit logs)
+results/logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# DeSTrOI upstream training artifacts
+Symbolic-Prediction-master/data/*.h5
