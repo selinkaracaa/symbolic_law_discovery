@@ -217,7 +217,7 @@ DGSR must try every operator mutation → **500k evals**. DeSTrOI (~**74%** oper
 
 # Part 4 — Pros & cons comparison
 
-> **Detailed limitations, gaps, and next steps for every paper:** [LITERATURE_AND_RESULTS.md §7](LITERATURE_AND_RESULTS.md#7-limitations-gaps--next-steps-all-papers)
+> **Literature overview (results, limitations, DeSTrOI hooks):** [LITERATURE_AND_RESULTS.md §6](LITERATURE_AND_RESULTS.md#6-literature-overview)
 
 | Method | Year | Core mechanism | Pros | Cons |
 |--------|------|----------------|------|------|

@@ -8,15 +8,13 @@ Detailed paper summaries (TPSR-style) and **our** benchmark tables.
 ## Table of contents
 
 1. [Kamienny 2022 — E2E Transformer](#1-kamienny-2022--e2e-transformer)
-2. [TPSR 2023](#2-tpsr-2023--transformer-based-planning)
-3. [DGSR-MCTS 2023](#3-dgsr-mcts-2023)
-4. [uDSR 2022](#4-udsr-2022)
+2. [uDSR 2022](#2-udsr-2022)
+3. [TPSR 2023](#3-tpsr-2023--transformer-based-planning)
+4. [DGSR-MCTS 2023](#4-dgsr-mcts-2023)
 5. [SR4MDL 2025](#5-sr4mdl-2025)
-6. [DeSTrOI + our pipeline](#6-destroi--our-hybrid-pipeline)
-7. [Limitations, gaps & next steps (all papers)](#7-limitations-gaps--next-steps-all-papers)
-8. [Cross-paper comparison](#8-cross-paper-comparison-table)
-9. [Our experimental results](#9-our-experimental-results)
-10. [SRBench taxonomy & data](#10-srbench-taxonomy--data)
+6. [Literature overview](#6-literature-overview)
+7. [Our experimental results](#7-our-experimental-results)
+8. [SRBench taxonomy & data](#8-srbench-taxonomy--data)
 
 ---
 
@@ -60,7 +58,43 @@ Pre-train a **transformer** on millions of synthetic formulas. At test time: enc
 
 ---
 
-## 2. TPSR 2023 — Transformer-based Planning
+## 2. uDSR 2022
+
+**Paper:** *A Unified Framework for Deep Symbolic Regression* · NeurIPS 2022  
+**Authors:** Landajuela et al. (LLNL / SRBench team)  
+**Links:** [Paper](https://papers.nips.cc/paper_files/paper/2022/hash/dbca58f35bddc6e4003b2dd80e42f838-Abstract-Conference.html) · [Code](https://github.com/dso-org/deep-symbolic-optimization)
+
+### Problem
+
+Individual SR methods (GP, neural, pre-training) each fail on different problem types. No modular way to combine them.
+
+### Proposed solution
+
+The authors built a **unified assembly line**. Crucially, the Kamienny E2E Transformer is just **one interchangeable engine block** inside this machine, known as the **Large-Scale Pre-Training (LSPT)** module.
+
+| Module | Role |
+|--------|------|
+| **Recursive simplification** | Takes the raw spreadsheet data and checks if it can mathematically simplify it first (e.g. stripping constants or isolating variables) to **shrink the problem size**. |
+| **Large-scale pre-training (LSPT)** | Hands data to the pre-trained Transformer. The Transformer uses its intuition to instantly output a few highly likely equation **skeletons** (e.g. predicting that the equation probably looks like \(y = c_1 \cdot \sin(x) + c_2\)). |
+| **Neural-guided search (DSR)** | An RL agent takes those skeletons and starts **filling in the blanks**, optimizing token selections based on rewards. |
+| **Genetic programming (GP)** | If the neural components get stuck, a GP population search takes over — treating the Transformer's best guesses as **parents** and breeding them over generations to find alternative structures. |
+| **Linear models (`poly` token)** | An ultra-fast linear solver instantly calculates exact numerical coefficients (\(c_1, c_2, \ldots\)) so the deep learning models don't waste time guessing precise decimals. |
+
+Kamienny's transformer is **one interchangeable block**, not the whole system.
+
+### Results (published SRBench)
+
+- **Highest symbolic recovery** on ground-truth problems at time of publication.
+- **1st place** GECCO 2022 SRBench real-world track.
+- Black-box: on accuracy–complexity **Pareto frontier** with other top methods.
+
+### Takeaway
+
+*Don't pick transformer OR GP—wire them together.*
+
+---
+
+## 3. TPSR 2023 — Transformer-based Planning
 
 **Paper:** *Transformer-based Planning for Symbolic Regression* · NeurIPS 2023  
 **Authors:** Shojaee, Meidani, Barati Farimani, Reddy  
@@ -158,7 +192,7 @@ Time-ordered trajectories—distribution mismatch with E2E pre-training.
 
 ---
 
-## 3. DGSR-MCTS 2023
+## 4. DGSR-MCTS 2023
 
 **Paper:** *Deep Generative Symbolic Regression with Monte-Carlo-Tree-Search* · ICML 2023  
 **Authors:** Kamienny, Lample, Lamprier, Virgolin (**same lead author as E2E**)  
@@ -232,22 +266,6 @@ On formulas harder than training, search more than doubles success.
 
 Why so many evaluations? DGSR-MCTS starts with a wide-open math vocabulary. Every mutation step considers probabilities over the full operator dictionary (`add`, `sub`, `mul`, `div`, `sin`, `cos`, `exp`, `log`, `sqrt`, …). That branching factor × thousands of tree nodes = hundreds of thousands of evaluations just to find one law.
 
-### Why this matters for DeSTrOI
-
-DGSR-MCTS is a critical benchmark because it represents the **text-and-search** approach to symbolic regression, while DeSTrOI represents the **computer vision** approach.
-
-| | DGSR-MCTS | DeSTrOI (ours) |
-|--|-----------|----------------|
-| Bottleneck | 500k evals; must try mutating every operator | — |
-| Edge | SOTA accuracy–simplicity on SRBench | **~74%** operator prediction accuracy on 100-formula prototype (single image forward pass) |
-| Idea | — | Look at the data as an image → predict which operators exist → **mask wrong operators before search** |
-
-**The pitch:** By plugging DeSTrOI into DGSR-MCTS, you can tell the mutation policy: *"Stop testing `sin` or `cos` mutations on this dataset — the image classifier already showed this data is purely logarithmic."* You can slash the 500,000 evaluation budget down to a fraction while targeting the same accuracy. **Not yet integrated in this repo.**
-
-**Professor talking point:**
-
-> *Meta's DGSR-MCTS boosted black-box median R² from 0.797 to 0.846 with much simpler formulas (size 33 vs 121 on Feynman). But it needs up to 500,000 expression evaluations per problem. Our DeSTrOI gets ~74% operator-ID accuracy in one forward pass — we aim to mask the mutation vocabulary and cut that search cost while holding accuracy.*
-
 ### vs Kamienny 2022
 
 | | E2E | DGSR-MCTS |
@@ -257,42 +275,6 @@ DGSR-MCTS is a critical benchmark because it represents the **text-and-search** 
 | Weights at test | Fixed | Online updates |
 | Speed | Fast (~seconds) | Slow (up to 500k evals) |
 | OOD / hard benchmarks | Weaker | Stronger |
-
----
-
-## 4. uDSR 2022
-
-**Paper:** *A Unified Framework for Deep Symbolic Regression* · NeurIPS 2022  
-**Authors:** Landajuela et al. (LLNL / SRBench team)  
-**Links:** [Paper](https://papers.nips.cc/paper_files/paper/2022/hash/dbca58f35bddc6e4003b2dd80e42f838-Abstract-Conference.html) · [Code](https://github.com/dso-org/deep-symbolic-optimization)
-
-### Problem
-
-Individual SR methods (GP, neural, pre-training) each fail on different problem types. No modular way to combine them.
-
-### Proposed solution
-
-**uDSR** = unified pipeline plugging in **5 strategies:**
-
-| Module | Role |
-|--------|------|
-| Recursive simplification | Reduce problem size |
-| Neural-guided search (DSR) | RL policy over expressions |
-| **Large-scale pre-training (LSPT)** | Kamienny E2E transformer |
-| Genetic programming | Population search |
-| Linear models (`poly` token) | Fast coefficient fitting |
-
-Kamienny’s transformer is **one interchangeable block**, not the whole system.
-
-### Results (published SRBench)
-
-- **Highest symbolic recovery** on ground-truth problems at time of publication.
-- **1st place** GECCO 2022 SRBench real-world track.
-- Black-box: on accuracy–complexity **Pareto frontier** with other top methods.
-
-### Takeaway
-
-*Don’t pick transformer OR GP—wire them together.*
 
 ---
 
@@ -330,221 +312,42 @@ Direct competitor to our goal: **short, correct structure** (like DeSTrOI prunin
 
 ---
 
-## 6. DeSTrOI + our hybrid pipeline
+## 6. Literature overview
 
-**Paper:** *Deep Symbolic Tree Operator Identificator* · AAAI 2021  
-**Code:** [`Symbolic-Prediction-master/`](../Symbolic-Prediction-master/) · [`destroi_predict.py`](../destroi_predict.py)
+Single reference table: **published SRBench results**, **main limitations**, and **where DeSTrOI could plug in**.  
+See [research roadmap](RESEARCH_ROADMAP.md) for phase details.
 
-### What we are proposing (read this first)
+| Method | Year | Published SRBench results | Main limitation | How DeSTrOI could help |
+|--------|------|---------------------------|-----------------|------------------------|
+| **Kamienny E2E** | 2022 | Feynman **84.8%** R²≥0.99 · Strogatz **35.7%** · black-box median R² **0.864** (TPSR paper) | **Blind one-shot decode** — no fit feedback while building the formula | Mask absent operators via `forbidden_token_ids` before beam decode ✅ tested |
+| **uDSR** | 2022 | Top **symbolic recovery** on ground-truth · GECCO 2022 real-world **1st** · Pareto front on black-box | **Heavy pipeline** — 5 subsystems (GP, RL, LSPT, simplification, poly); hard to extend | Prune `function_set` from DeSTrOI scores before search 📋 planned |
+| **TPSR** | 2023 | Feynman **94.9%** · Strogatz **82.8%** · black-box median R² **0.945** (λ=0.1) | **Slow MCTS** — still searches full operator alphabet unless λ tuned | Mask tokens inside MCTS expansion 📋 planned (lab GPU) |
+| **DGSR-MCTS** | 2023 | Feynman **80%** R²≥0.99 (simpler formulas, size **33**) · black-box median R² **0.846** · Pareto rank **0** | **Extreme compute** — up to **500k** evals/problem; online fine-tuning | Shrink mutation vocabulary before tree search 📋 planned |
+| **SR4MDL** | 2025 | ~**50/133 exact** recovery (+43.9% vs prior SOTA, paper) | Optimizes **MDL**, not operators — still large grammar | Restrict terminals before MDL search 📋 planned |
+| **DeSTrOI + E2E (ours)** | — | 20-problem pilot: E2E **7/20** R²≥0.99 · DeSTrOI+E2E **6/20** · synthetic 6-op: **17%→22%** R²≥0.95 | Only plain E2E wired; masking **hurts** when DeSTrOI is wrong (~34/100 synthetic) | Full project: stack prior on search methods above |
 
-**We are NOT claiming that “DeSTrOI + plain transformer” beats TPSR.** Those are different things:
-
-| | Plain Kamienny transformer | TPSR | **Our work so far** |
-|--|---------------------------|------|---------------------|
-| **Search** | Beam decode only (fast, blind) | MCTS + reward loop (slow, data-aware) | DeSTrOI operator mask + beam decode |
-| **Uses data while building?** | No (until end) | Yes (every symbol) | Partially (DeSTrOI reads \((X,y)\) landscape once) |
-| **SRBench Feynman (published)** | 84.8% R²≥0.99 | **94.9%** | **1 problem run** — not comparable yet |
-
-**The actual hypothesis:** DeSTrOI is a **cheap add-on layer** you stack **on top of** existing methods — Kamienny, TPSR, uDSR, etc. — to **shrink the operator search space** before or during search.
-
-```
-                    ┌─────────────────────────────────────┐
-  (X, y)  ────────► │  DeSTrOI: which operators appear? │  ← one CNN pass
-                    └─────────────────┬───────────────────┘
-                                      │ mask / prune operators
-                    ┌─────────────────▼───────────────────┐
-                    │  THEN pick a baseline:            │
-                    │  • Kamienny E2E  ✅ we tested this │
-                    │  • TPSR + MCTS   📋 not wired yet  │
-                    │  • uDSR / SR4MDL 📋 planned        │
-                    └───────────────────────────────────┘
-```
-
-**What we have built today:** DeSTrOI → `forbidden_token_ids` → **Kamienny transformer only** (no MCTS).
-
-**What we have measured:** On 100 **synthetic 6-op** formulas (not SRBench):
-- Transformer alone: **17%** hit R²≥0.95
-- DeSTrOI + Transformer: **22%** — a **small** gain, not a TPSR-level jump
-- **34/100** cases got **worse** when DeSTrOI blocked a true operator (74% operator ID accuracy)
-
-**What we have NOT run:** DeSTrOI + TPSR on SRBench. That is the experiment that would test whether operator pruning helps MCTS — we cite TPSR’s published numbers as the **target to beat or complement**, not as something we’ve already surpassed.
-
-### Problem we target
-
-Even with MCTS (TPSR), search still wanders over a **large operator alphabet**. Wrong operator choices waste rollouts or produce bloated formulas. DeSTrOI tries to answer: *“Which of these 6 operators even appear in this dataset?”* before decoding starts.
-
-### Our approach
-
-**DeSTrOI** reads the **geometry** of \((x,y)\) as an image → predicts which of **6 operators** appear: `add, mul, inv, sqrt, log, sin`.
-
-```
-(X, y) → DeSTrOI → operator scores → forbidden_token_ids → Kamienny Transformer → formula
-```
-
-(Future: same mask fed into TPSR’s MCTS expansion step.)
-
-### Integration status
-
-| Baseline | How DeSTrOI would integrate | Status | Tested on SRBench? |
-|----------|------------------------------|--------|-------------------|
-| Kamienny E2E | Block absent operators in `fit()` | ✅ **Done** | ⏳ 1/133 |
-| TPSR | Mask tokens in MCTS expansion | 📋 Planned | ❌ |
-| uDSR | Prune `function_set` | 📋 Planned | ❌ |
-| DGSR-MCTS | Mask mutation vocabulary | 📋 Planned | ❌ |
-| SR4MDL | Restrict grammar terminals | 📋 Planned | ❌ |
+**Our 20-problem SRBench numbers are not comparable to published full-benchmark rates** (119 Feynman + 14 Strogatz).
 
 ---
 
-## 7. Limitations, gaps & next steps (all papers)
-
-Master reference for Phase 2 of the [research roadmap](RESEARCH_ROADMAP.md).  
-Each row: what the method **cannot do well**, what the field still **lacks**, and the **logical next step** (from follow-up papers or our project).
-
-### Summary table
-
-| Paper | Year | Main limitation (plain English) | Fails or struggles on | What's still missing | Next step (field / ours) |
-|-------|------|--------------------------------|----------------------|----------------------|--------------------------|
-| **[Kamienny E2E](#kamienny-2022)** | 2022 | **Blind decoding** — picks tokens by language-model probability, not by whether the partial formula fits the data | Strogatz ODEs (~35.7% R²≥0.99); exact recovery; deeply nested formulas; OOD data | No search feedback during generation; one-shot guess | **TPSR / DGSR** add MCTS · **We:** stack DeSTrOI operator mask before decode |
-| **[TPSR](#tpsr-2023)** | 2023 | **Heavy search cost** — MCTS + beam completion at every symbol; λ trade-off between accuracy and formula bloat | Real-time / large-scale deployment; still searches full operator alphabet; exact recovery not guaranteed | Cheap structural priors before MCTS; operator-level pruning | **SR4MDL** fixes objective · **We:** DeSTrOI masks operators **inside** TPSR expansion |
-| **[DGSR-MCTS](#dgsr-mcts-2023)** | 2023 | **Extreme compute** — ~500k expression evaluations per problem; complex install & online fine-tuning | Laptop/small-lab reproduction; fast iteration; interpretable hyperparameters | Practical budget for 133 SRBench runs | Lighter hybrids (TPSR) · **We:** DeSTrOI as O(1) prior to shrink mutations |
-| **[uDSR](#udsr-2022)** | 2022 | **Heavy engineering** — 5 subsystems (GP, RL, LSPT, simplification, poly); slow end-to-end | Quick prototyping; single-GPU neural pipeline; modular ablation | Unified but not simple; hard to add one new prior | Plug DeSTrOI into `function_set` pruning · reproduce via SRBench harness |
-| **[SR4MDL](#sr4mdl-2025)** | 2025 | **Search + MDLformer cost**; needs checkpoint & MCTS/GP loop; newest, less reproduced | Noise robustness at scale; integration with existing E2E weights; operator-level priors | Combining MDL objective with cheap visual/structural priors | **We:** restrict grammar terminals via DeSTrOI before MDL search |
-| **[DeSTrOI (original)](#destroi-aaai-2021)** | 2021 | **Operator ID only** — does not output full formulas; 6-op vocab; 2D image encoding | `sub`, `div`, `exp`, `cos`; high-D native path (k>2 needs Keras fix); no transformer integration in original paper | End-to-end SR pipeline with modern transformers | **Our project:** wire DeSTrOI → Kamienny / TPSR / uDSR |
-| **[DeSTrOI + E2E (ours)](#our-work)** | — | **Modest gains so far**; mixed on 20 SRBench problems; only Kamienny wired | Full 133 benchmark; DeSTrOI + TPSR | DeSTrOI + TPSR on lab GPU |
-
----
-
-### Kamienny 2022
-
-| | |
-|--|--|
-| **Limitation** | Transformer decodes **without checking fit** until the full equation is written. Beam search explores token probability, not data reward. |
-| **Evidence** | Strogatz R²≥0.99: **35.7%** (TPSR paper); ~4th on SRBench; poor exact recovery on ground-truth. |
-| **Fails on** | Time-ordered ODE trajectories; OOD inputs; nested structure; cheating R² with long formulas. |
-| **What's missing** | Any **in-loop** signal from the data (R², complexity) while building the formula. |
-| **Next step** | TPSR (same backbone + MCTS). **Our step:** DeSTrOI operator mask → fewer wrong token branches before beam decode. |
-
----
-
-### TPSR 2023
-
-| | |
-|--|--|
-| **Limitation** | Fixes blind decoding with MCTS but is **slow** and still explores a **large operator vocabulary** unless λ is tuned carefully. |
-| **Evidence** | λ=0 gives bloated formulas (complexity ~130 on black-box); λ=0.1 needed for balance; slower than plain E2E. |
-| **Fails on** | Low-latency settings; problems where MCTS budget is too small; operator search space explosion. |
-| **What's missing** | **Upfront** reduction of which operators to even consider — before spending rollouts. |
-| **Next step** | Combine with structural priors. **Our step:** feed DeSTrOI `forbidden_token_ids` into TPSR's MCTS expansion (Phase B, lab GPU). |
-
----
-
-### DGSR-MCTS 2023
-
-| | |
-|--|--|
-| **Limitation** | Strongest search story but **prohibitively expensive** for student-scale replication. |
-| **Evidence** | ~**500,000** expression evaluations per problem; online policy updates; unofficial repo fork. |
-| **Fails on** | Full 133 SRBench on one machine; rapid hypothesis testing; fair ablation studies. |
-| **What's missing** | SOTA accuracy at **TPSR-like** or lower compute budgets. |
-| **Next step** | Lighter MCTS (TPSR) or better priors. **Our step:** test whether DeSTrOI reduces effective search width for mutation policies. |
-
----
-
-### uDSR 2022
-
-| | |
-|--|--|
-| **Limitation** | Best **symbolic recovery** in 2022 but **not a single model** — five strategies, separate conda env, long runs. |
-| **Evidence** | 1st GECCO 2022 SRBench real-world; modular but heavy DSO stack. |
-| **Fails on** | Fast neural-only baseline comparisons; easy "add one new idea" integration; quick professor-demo runs. |
-| **What's missing** | Clean hook for a **visual operator prior** without reconfiguring entire pipeline. |
-| **Next step** | Prune `function_set` from external signal. **Our step:** DeSTrOI scores → drop absent operators in uDSR config. |
-
----
-
-### SR4MDL 2025
-
-| | |
-|--|--|
-| **Limitation** | Best **exact recovery** push (~50/133) but optimizes **MDL**, not operators — still searches a large grammar. |
-| **Evidence** | +43.92% recovery vs prior SOTA (paper); needs MDLformer + search loop. |
-| **Fails on** | Noisy data (paper notes sensitivity); quick integration with Kamienny weights alone; operator-level pruning. |
-| **What's missing** | Joint use of **description length** + **cheap operator identification** before search. |
-| **Next step** | Restrict terminals early. **Our step:** DeSTrOI mask → smaller grammar → MDL search (future). |
-
----
-
-### DeSTrOI (AAAI 2021)
-
-| | |
-|--|--|
-| **Limitation** | Predicts **which operators appear**, not the full formula; trained on **6 ops** and 2D `(x,y)` landscapes. |
-| **Evidence** | Original paper: operator classification + MIL for k≤10; no Kamienny/TPSR integration; `div`/`sub` not in vocab. |
-| **Fails on** | Formulas needing only `cos`/`exp`; mis-prediction when landscape is ambiguous; modern Keras on k>2 (MIL bug). |
-| **What's missing** | Connection to 2022–2025 transformer SR stack. |
-| **Next step** | **Our entire project** — use DeSTrOI as prior for E2E, TPSR, uDSR, SR4MDL. |
-
----
-
-### Our work (DeSTrOI + Kamienny today)
-
-| | |
-|--|--|
-| **Limitation** | Only **plain E2E** integrated; small SRBench sample; DeSTrOI hurts when wrong (34/100 synthetic cases worse). |
-| **Evidence** | Synthetic: 17% → 22% R²≥0.95; **20 SRBench:** E2E 7/20 R²≥0.99, DeSTrOI+E2E 6/20, mixed ΔR²; no TPSR yet. |
-| **Fails on** | Claiming SOTA; high-D without MIL projections; `inv` vs `div` mismatch on SRBench; **SRBench operator masking often neutral or harmful**. |
-| **What's missing** | DeSTrOI + TPSR on same 10 problems; noise sweep; exact recovery metric; 30–133 scale. |
-| **Next step** | **TPSR ± DeSTrOI on lab GPU** (mask may help when combined with search, not blind beam decode) → noise & recovery experiments. |
-
----
-
-### Limitations × SRBench taxonomy (where methods break)
-
-| Challenge in our taxonomy | n (133 GT) | Who struggles | Why |
-|---------------------------|------------|---------------|-----|
-| **Strogatz** (time-ordered) | 14 | Kamienny ❌ | Training data = random points, not ODE trajectories |
-| **Complex** formulas | 35 | Kamienny ❌, TPSR ⚠️ | Deep nesting needs more search budget |
-| **High D** (D≥7) | 4 | All ⚠️ | Feature selection / projections; DeSTrOI 2D slice is approximate |
-| **Trig-heavy** (`has_trig`) | ~40+ | Kamienny ⚠️ | Operator confusion in decode |
-| **Exact ground-truth recovery** | 133 | Kamienny ❌, TPSR ⚠️ | R²≥0.99 ≠ symbolic match; SR4MDL/uDSR best here |
-| **DeSTrOI vocab gap** | 4 not compatible | DeSTrOI ❌ | Formulas with only `cos`/`cot`/etc. outside 6-op set |
-
-*Taxonomy:* [`results/srbench/taxonomy.csv`](../results/srbench/taxonomy.csv)
-
----
-
-## 8. Cross-paper comparison table
-
-| Method | Year | Search? | Uses E2E transformer? | SRBench strength | Main weakness |
-|--------|------|---------|----------------------|------------------|---------------|
-| Kamienny E2E | 2022 | Beam only | **Is** the model | Fast; Feynman OK | Blind decode; Strogatz |
-| TPSR | 2023 | **MCTS** | Backbone | Strogatz, black-box | Slower; λ tuning |
-| DGSR-MCTS | 2023 | **MCTS + online** | Mutation policy | SOTA claim | Very slow |
-| uDSR | 2022 | GP + RL + LSPT | One module | Symbolic recovery | Heavy setup |
-| SR4MDL | 2025 | MCTS/GP + MDL | Training data only | Exact recovery | New; compute |
-| **DeSTrOI + E2E (ours)** | — | Operator prior | Constrains decode | TBD | 6-op; 2D native |
-
-### Published SRBench headline numbers (R² ≥ 0.99 on Feynman / Strogatz)
-
-| Method | Feynman | Strogatz | Black-box | Expr. size (Feyn.) | Source |
-|--------|---------|----------|-----------|-------------------|--------|
-| E2E Transformer | 84.8% | 35.7% | median R² 0.864 | ~51–121 | TPSR paper |
-| TPSR (λ=0.1) | **94.9%** | **82.8%** | median R² **0.945** | 57 | TPSR paper |
-| **DGSR-MCTS** | 80% | *(not split)* | median R² **0.846** | **33** | ICML 2023 Fig. 2 |
-| E2E (DGSR paper, ≤10 feat.) | 87% | — | median R² 0.797 | 121 | ICML 2023 Fig. 2 |
-| uDSR | Top symbolic recovery | — | Pareto front | — | uDSR paper |
-| SR4MDL | — | — | — | — | ~50/133 **exact** recovery |
-| **Our E2E (20-problem pilot)** | 7/12 (58%)* | 0/8 | — | — | [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) |
-
-*Our 20-problem subset is not comparable to published full-benchmark rates.*
-
----
-
-## 9. Our experimental results
+## 7. Our experimental results
 
 *All runs local (Mac CPU). Not yet full SRBench 133.*
 
-### A. Three-way: DeSTrOI vs Transformer vs Combined (synthetic 6-op trees)
+### What each benchmark tests
+
+| Benchmark | What it measures | Transformer in this run |
+|-----------|------------------|-------------------------|
+| **A — Three-way** | **Paired** test: same 100 formulas, transformer **alone vs DeSTrOI+transformer** | Kamienny on **6-op DeSTrOI trees** (out-of-distribution for 18-op model) |
+| **B — Transformer only** | Same 6-op generator, **no DeSTrOI** — diagnostic baseline | Same Kamienny model, transformer only |
+| **C — In-domain** | Kamienny's **own 18-op training generator** | Shows best-case transformer performance |
+| **SRBench 20** | Real physics/ODE data from [taxonomy](../results/srbench/taxonomy.csv) | E2E vs DeSTrOI+E2E on 12 Feynman + 8 Strogatz |
+
+**A vs B:** Both use the DeSTrOI 6-operator generator, but **A runs DeSTrOI+transformer on every formula** (head-to-head). **B only runs the transformer** — no masking, no operator-ID accuracy. Use **A** for "does DeSTrOI help?"; use **B** for "how hard is this generator for Kamienny alone?"
+
+---
+
+### A. Three-way: DeSTrOI vs Transformer vs Combined (synthetic 6-op)
 
 **Setup:** Random formulas from DeSTrOI generator · 2 vars · 6 operators · n=100 · seed=0  
 **Script:** [`benchmark_three_way.py`](../benchmark_three_way.py)
@@ -552,28 +355,31 @@ Each row: what the method **cannot do well**, what the field still **lacks**, an
 | Metric | Transformer alone | DeSTrOI + Transformer |
 |--------|-------------------|------------------------|
 | Mean R² | −32.20 | −36.50 |
-| Median R² | — | — |
 | R² ≥ 0.95 | **17%** (17/100) | **22%** (22/100) |
 | R² < 0 (catastrophic) | 38% | 33% |
 | DeSTrOI operator accuracy | — | **74.3%** |
 | Combined **better** (ΔR² > 0.005) | — | **42 / 100** |
 | Combined **worse** | — | **34 / 100** |
 
-**CSV:** [three_way_benchmark_n100_seed0.csv](../results/three_way/three_way_benchmark_n100_seed0.csv)  
-**Figure:** [three_way_comparison_destroi_vocab.png](../results/three_way/figures/three_way_comparison_destroi_vocab.png)
+**CSV:** [three_way_benchmark_n100_seed0.csv](../results/three_way/three_way_benchmark_n100_seed0.csv) · **Figure:** [three_way_comparison_destroi_vocab.png](../results/three_way/figures/three_way_comparison_destroi_vocab.png)
 
-**Pattern:** Combined wins when DeSTrOI correctly identifies operators; **hurts when DeSTrOI blocks a true operator** (e.g. formulas with `inv`).
+**When does masking help or hurt?**
 
-| Subgroup | n | Transformer mean R² | Combined mean R² |
-|----------|---|-------------------|------------------|
-| has `inv` | 52 | −61.56 | −69.70 |
-| no `inv` | 48 | −0.39 | −0.53 |
+| Pattern | What happens |
+|---------|--------------|
+| DeSTrOI **correct** (high operator accuracy) | Combined often wins — fewer wrong token branches |
+| DeSTrOI **blocks a true operator** | Combined loses — transformer cannot recover the right structure |
+| **`inv` in formula** (n=52) | Worst case: mean R² −61.6 (trans) / −69.7 (comb) — Kamienny uses `div`, DeSTrOI uses `inv`; mismatch amplifies failures |
+| **`log` in formula** (n=57) | Mean R² −38.0 / −54.1 — nested `log`/`inv` trees are unstable for blind decode |
+| **`sin` in formula** (n=51) | Mean R² −63.5 / −71.8 — deep unary nesting → catastrophic negative R² |
+| **`sqrt` in formula** (n=55) | Transformer alone less bad (−0.3) but combined still dragged down (−55.7) when wrong ops blocked |
+| **Nested unaries** (mul + 2 unary ops, n=5) | Hardest structure — combined worse in 2/5 cases |
 
 ---
 
 ### B. Transformer only — DeSTrOI-vocab synthetic trees
 
-**Setup:** Same generator as DeSTrOI (6-op) · n=100 · seed=0  
+**Setup:** Same 6-op generator · n=100 · seed=0 · **no DeSTrOI**  
 **Script:** [`benchmark_transformer.py`](../benchmark_transformer.py)
 
 | Metric | Value |
@@ -584,100 +390,114 @@ Each row: what the method **cannot do well**, what the field still **lacks**, an
 | R² ≥ 0.50 | 62% |
 | R² < 0 | 30% |
 
-**CSV:** [transformer_benchmark_n100](../results/transformer/synthetic_destroi_vocab/transformer_benchmark_summary_n100.txt)
+**CSV:** [transformer_benchmark_summary_n100.txt](../results/transformer/synthetic_destroi_vocab/transformer_benchmark_summary_n100.txt)
 
 | Subgroup | Mean R² | Fail rate (R²<0.5) |
 |----------|---------|---------------------|
 | has `inv` (n=53) | 0.05 | 36% |
-| no `inv` (n=47) | 0.29 | 40% |
 | has `log` (n=61) | −0.00 | 43% |
 | mul+2 unaries (n=6) | −2.09 | 83% |
+
+**vs published:** Kamienny reports **64%** R²≥0.95 on in-domain synthetic (TPSR paper). Our **21%** on 6-op DeSTrOI trees shows how far off-distribution this vocab is for the pretrained model.
 
 ---
 
 ### C. Transformer in-domain (NeurIPS 18-op generator)
 
-**Setup:** Model’s **own** training distribution · n=100 · seed=0  
+**Setup:** Model's **own training distribution** · n=100 · seed=0  
 **Script:** [`benchmark_transformer_indomain.py`](../benchmark_transformer_indomain.py)
 
-| Metric | Value |
-|--------|-------|
-| Mean R² | −2.42 (skewed by outliers) |
-| **Median R²** | **0.999** |
-| R² ≥ 0.95 | **74%** |
-| R² ≥ 0.50 | 80% |
-| R² < 0 | 14% |
-| Exact string recovery | 0% |
+| Metric | Our run | Published (TPSR paper, in-domain) |
+|--------|---------|-----------------------------------|
+| Median R² | **0.999** | — |
+| R² ≥ 0.95 | **74%** | E2E **64%** · TPSR (λ=0.1) **70.8%** |
+| R² ≥ 0.50 | 80% | — |
+| Mean R² | −2.42 (outlier-skewed) | — |
+| Exact string recovery | 0% | — |
 
-**Takeaway:** Transformer is **strong in-domain** (median R² ≈ 1) but mean is dragged down by rare catastrophic failures. **Out-of-vocab / DeSTrOI trees are much harder** (Section B).
+**Takeaway:** In-domain, the transformer works as advertised (median R² ≈ 1). The gap to Section A/B is the **operator vocabulary and formula distribution**, not a broken install.
 
 ---
 
-### D. SRBench ground-truth — 20 problems (E2E vs DeSTrOI+E2E)
+### SRBench 20-problem pilot (E2E vs DeSTrOI+E2E)
 
 **Setup:** 12 Feynman + 8 Strogatz · 75/25 split · seed=29910 · n_trees=10  
-**Script:** [`benchmark_srbench_20.py`](../benchmark_srbench_20.py) · [`benchmark_subset_20.json`](../datasets/srbench/benchmark_subset_20.json)
+**Script:** [`benchmark_srbench_20.py`](../benchmark_srbench_20.py) · problem list: [`benchmark_subset_20.json`](../datasets/srbench/benchmark_subset_20.json)
 
-| Metric | Transformer alone | DeSTrOI + Transformer |
-|--------|-------------------|------------------------|
-| Mean R² | 0.756 | 0.770 |
-| Median R² | 0.967 | 0.968 |
-| R² ≥ 0.99 | **7 / 20** | **6 / 20** |
-| R² ≥ 0.95 | 12 / 20 | 12 / 20 |
-| DeSTrOI operator accuracy | — | **58%** |
+#### Results vs published
 
-**By group (E2E):**
+| Metric | E2E (ours) | DeSTrOI+E2E (ours) | Published E2E | Published TPSR (λ=0.1) |
+|--------|------------|---------------------|---------------|------------------------|
+| Mean R² (all 20) | 0.756 | 0.770 | — | — |
+| Median R² | 0.967 | 0.968 | — | — |
+| R² ≥ 0.99 | **7 / 20** | 6 / 20 | Feynman **84.8%** · Strogatz **35.7%** (full benchmark) | Feynman **94.9%** · Strogatz **82.8%** |
+| R² ≥ 0.95 | 12 / 20 | 12 / 20 | — | — |
+| DeSTrOI operator accuracy | — | **58%** | — | — |
 
-| Group | n | R²≥0.99 | Mean R² |
-|-------|---|---------|---------|
-| Feynman | 12 | **7 / 12** (58%) | 0.963 |
-| Strogatz | 8 | **0 / 8** (0%) | 0.445 |
+#### By group (E2E vs DeSTrOI+E2E)
 
-**Head-to-head:** mean ΔR² **+0.01** · better 4 · worse 4 · similar 12
+| Group | n | E2E R²≥0.99 | DeSTrOI+E2E R²≥0.99 | E2E mean R² | DeSTrOI+E2E mean R² |
+|-------|---|-------------|---------------------|-------------|---------------------|
+| Feynman | 12 | **7 / 12** (58%) | 6 / 12 (50%) | 0.963 | 0.967 |
+| Strogatz | 8 | **0 / 8** (0%) | 0 / 8 (0%) | 0.445 | 0.473 |
 
-Notable: DeSTrOI helped `strogatz_barmag2` (+0.33) and `shearflow2` (+0.30); hurt `strogatz_predprey1` (−0.15) and `strogatz_vdp1` (−0.27).
+**Head-to-head:** mean ΔR² **+0.014** · better 4 · worse 4 · similar 12
+
+Notable wins: `strogatz_barmag2` (+0.33), `strogatz_shearflow2` (+0.30). Notable losses: `strogatz_predprey1` (−0.15), `strogatz_vdp1` (−0.27).
 
 **CSV:** [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) · [summary](../results/srbench/srbench_20_benchmark_summary.txt)
 
-**Takeaway:** On this 20-problem pilot, Kamienny alone solves 7/20 at R²≥0.99 — not comparable to published 84.8% Feynman / 35.7% Strogatz (those are over all 119+14). DeSTrOI+E2E is mixed: small net gain on mean R², no clear win on success rate. Strogatz remains hard for plain E2E.
+#### How the 20 problems were chosen (from taxonomy)
+
+Problems were picked from [`taxonomy.csv`](../results/srbench/taxonomy.csv) to cover both benchmarks and a range of difficulty — not a random sample of all 133.
+
+| Selection criterion | Count in our 20 |
+|---------------------|-----------------|
+| Feynman | 12 |
+| Strogatz | 8 |
+| Medium complexity | 13 |
+| Complex | 6 |
+| Simple | 1 |
+| D = 2 | 11 |
+| D ≥ 6 (high-D stress) | 3 |
+| Has trig in ground truth | 5 |
+| DeSTrOI-compatible (heuristic) | 20 / 20 |
+
+| Problem | Benchmark | D | GT operators | Complexity |
+|---------|-----------|---|--------------|------------|
+| feynman_III_10_19 | Feynman | 4 | add,mul,pow,sqrt | medium |
+| feynman_II_27_18 | Feynman | 2 | mul,pow | simple |
+| feynman_I_14_4 | Feynman | 2 | div,mul,pow | medium |
+| feynman_III_15_14 | Feynman | 3 | div,mul,pow | medium |
+| feynman_II_11_3 | Feynman | 5 | div,mul,pow,sub | medium |
+| feynman_III_4_32 | Feynman | 4 | div,exp,mul | medium |
+| strogatz_barmag1 | Strogatz | 2 | mul,sin,sub | medium |
+| strogatz_lv1 | Strogatz | 2 | mul,pow,sub | medium |
+| strogatz_predprey1 | Strogatz | 2 | add,div,mul,sub | medium |
+| strogatz_vdp1 | Strogatz | 2 | div,mul,pow,sub | medium |
+| feynman_III_19_51 | Feynman | 5 | div,mul,pow,sub | complex |
+| feynman_III_9_52 | Feynman | 6 | div,mul,pow,sin,sub | complex |
+| feynman_I_9_18 | Feynman | 9 | add,div,mul,pow,sub | complex |
+| feynman_II_6_15a | Feynman | 6 | add,div,mul,pow,sqrt | complex |
+| feynman_I_6_2 | Feynman | 2 | div,exp,mul,pow,sqrt,sub | complex |
+| feynman_I_41_16 | Feynman | 5 | div,exp,mul,pow | complex |
+| strogatz_bacres1 | Strogatz | 2 | add,div,mul,pow,sub | medium |
+| strogatz_barmag2 | Strogatz | 2 | mul,sin,sub | medium |
+| strogatz_glider1 | Strogatz | 2 | mul,pow,sin,sub | medium |
+| strogatz_shearflow2 | Strogatz | 2 | add,cos,mul,pow,sin | medium |
+
+#### Conclusions from the 20-problem pilot
+
+1. **E2E alone is strong on Feynman** (7/12 at R²≥0.99) but **fails all Strogatz** — matches the published pattern (Strogatz is OOD for Kamienny).
+2. **DeSTrOI+E2E does not beat E2E on success rate** (6/20 vs 7/20) but slightly improves mean R² (+0.014) on hard Strogatz cases when masking is right.
+3. **Operator-ID accuracy drops on real data** (58% vs 74% synthetic) — SRBench formulas use `div`/`sub`/`pow` outside DeSTrOI's 6-op vocab.
+4. **Not comparable to published 84.8% / 35.7%** — those are rates over all 119+14 problems; our 20 are a taxonomy-guided stress sample.
+5. **Next step:** DeSTrOI + **TPSR** (search, not blind beam) on the same 20 — the fair test of the hypothesis.
 
 ---
 
-### D2. SRBench ground-truth — Kamienny only (legacy single run)
+## 8. SRBench taxonomy & data
 
-**Setup:** 75/25 split · seed=29910 · n_trees=10 · max_train_rows=2000  
-**Script:** [`benchmark_srbench_gt.py`](../benchmark_srbench_gt.py)
-
-| Problem | D | GT formula (short) | R²_test | ≥0.99? |
-|---------|---|-------------------|---------|--------|
-| feynman_III_10_19 | 4 | `mom*sqrt(Bx**2+By**2+Bz**2)` | **0.992** | ✅ |
-
-**CSV:** [gt_benchmark.csv](../results/srbench/gt_benchmark.csv)  
-**Target:** 30 problems (~3 h CPU) → then 133 overnight.
-
----
-
-### E. Summary: what our numbers mean (don’t mix these up)
-
-| Comparison | What it is | Takeaway |
-|------------|------------|----------|
-| **TPSR paper:** E2E vs TPSR on SRBench | Published baseline vs MCTS search | TPSR wins big (e.g. Feynman 84.8% → 94.9%) — **search matters** |
-| **Our run:** Transformer vs DeSTrOI+Transformer | Same Kamienny model, ± operator mask | Synthetic: 17%→22% R²≥0.95; SRBench pilot (20): E2E 7/20 R²≥0.99, mixed ΔR² |
-| **Our run vs TPSR paper** | ❌ **Not a fair comparison** | Different method (no MCTS), different data (synthetic vs SRBench) |
-| **Future fair test** | DeSTrOI + TPSR vs TPSR alone on SRBench | Would actually test our hypothesis |
-
-| Benchmark | Metric | E2E (published) | TPSR (published) | **Our E2E (20 SRBench)** | **Our DeSTrOI+E2E** |
-|-----------|--------|-----------------|------------------|--------------------------|---------------------|
-| Feynman | R²≥0.99 | 84.8% | 94.9% | **7/12** (58%)* | 6/20 total |
-| Strogatz | R²≥0.99 | 35.7% | 82.8% | **0/8** (0%)* | — |
-| Synthetic 6-op | R²≥0.95 | — | — | 17% | **22%** |
-| In-domain 18-op | R²≥0.95 | 64%† | 70.8%† | **74%** | not tested |
-
-\*20-problem pilot (subset A+B), not full 119+14 · †TPSR paper in-domain synthetic
-
----
-
-## 10. SRBench taxonomy & data
 
 ### What is taxonomy?
 
@@ -717,4 +537,4 @@ A **catalog of all 133 ground-truth formulas** with labels: dimensions, operator
 
 ---
 
-*Last updated: 20-problem SRBench benchmark complete. See [srbench_20_benchmark_summary.txt](../results/srbench/srbench_20_benchmark_summary.txt).*
+*Last updated: restructured literature overview + 20-problem SRBench pilot. See [srbench_20_benchmark_summary.txt](../results/srbench/srbench_20_benchmark_summary.txt).*

@@ -29,7 +29,7 @@ Related docs:
 | Phase | Goal | Status | Deliverables |
 |-------|------|--------|--------------|
 | **1** | Taxonomy & data for 133 SRBench ground-truth formulas | ✅ **Done** | [taxonomy.csv](../results/srbench/taxonomy.csv) · [summary](../results/srbench/taxonomy_summary.txt) · [problem_list.json](../datasets/srbench/problem_list.json) · `srbench_data.py` |
-| **2** | Map SOTA limitations; position DeSTrOI | ✅ **Done** | [Limitations table §7](LITERATURE_AND_RESULTS.md#7-limitations-gaps--next-steps-all-papers) · [LITERATURE](LITERATURE_AND_RESULTS.md) |
+| **2** | Map SOTA limitations; position DeSTrOI | ✅ **Done** | [Literature overview §6](LITERATURE_AND_RESULTS.md#6-literature-overview) · [LITERATURE](LITERATURE_AND_RESULTS.md) |
 | **3** | Run baselines ± DeSTrOI on SRBench | ✅ **20 problems** | [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) |
 | **4** | Proposal / paper write-up | 📋 **Next** | TPSR ± DeSTrOI on lab server |
 
@@ -43,9 +43,9 @@ These questions were chosen **before benchmarking**, to stress-test whether the 
 
 | # | Question | Why we asked it | Where answered |
 |---|----------|-----------------|----------------|
-| **1** | Is SR well-studied and **solved**? | If solved, no paper. SRBench (La Cava et al.) shows no single winner → gap remains. | [§1 below](#1-is-symbolic-regression-solved) · [LITERATURE §7](LITERATURE_AND_RESULTS.md#7-cross-paper-comparison-table) |
+| **1** | Is SR well-studied and **solved**? | If solved, no paper. SRBench (La Cava et al.) shows no single winner → gap remains. | [§1 below](#1-is-symbolic-regression-solved) · [LITERATURE §6](LITERATURE_AND_RESULTS.md#6-literature-overview) |
 | **2** | Transformers alone or **combine**? | Kamienny alone is the baseline; every 2023–2025 SOTA paper adds search or hybrids. Defines our comparison set. | [§2 below](#2-transformers-alone-or-combine) |
-| **3** | Is **DeSTrOI** a prerequisite before transformers? | Core novelty claim: visual operator ID **before** decode/search, vs expensive MCTS line-by-line. | [§3 below](#3-is-destroi-a-prior) · [LITERATURE §6](LITERATURE_AND_RESULTS.md#6-destroi--our-hybrid-pipeline) |
+| **3** | Is **DeSTrOI** a prerequisite before transformers? | Core novelty claim: visual operator ID **before** decode/search, vs expensive MCTS line-by-line. | [§3 below](#3-is-destroi-a-prior) · [LITERATURE §7](LITERATURE_AND_RESULTS.md#7-our-experimental-results) |
 | **4** | What is **left to do**? | Turns literature gaps into our experiment list (noise, exact recovery, high-D, TPSR integration). | [§4 below](#4-whats-left-to-do) |
 | **5** | Used in **physics / EE / medicine**? | Justifies real-world impact for proposal intro / related applications. | [§5 below](#5-deployment-domains) |
 | **6** | How to **deploy**? Who consumes? | Forces a concrete product story (CSV in → formulas out) beyond pure accuracy tables. | [§6 below](#6-deployment) |
@@ -95,7 +95,7 @@ All **133** SRBench ground-truth problems (119 Feynman + 14 Strogatz) are catalo
 
 ## Phase 2 — Method limitations & DeSTrOI positioning (✅ done)
 
-**Full limitations table (all papers):** [LITERATURE_AND_RESULTS.md §7 — Limitations, gaps & next steps](LITERATURE_AND_RESULTS.md#7-limitations-gaps--next-steps-all-papers)
+**Literature overview (results, limitations, DeSTrOI):** [LITERATURE_AND_RESULTS.md §6](LITERATURE_AND_RESULTS.md#6-literature-overview)
 
 ### Quick view — where each method struggles on our taxonomy
 

@@ -26,7 +26,7 @@ Visual operator identification as a prior for neural formula search.
 | **Three-way** (DeSTrOI / Trans / Combined) | 100 | Comb R²≥0.95: **22%** vs Trans **17%**; DeSTrOI acc **74%** | [CSV](results/three_way/three_way_benchmark_n100_seed0.csv) · [Figure](results/three_way/figures/three_way_comparison_destroi_vocab.png) |
 | **Transformer** (6-op synthetic) | 100 | Median R² **0.73**; R²≥0.95 **21%** | [Summary](results/transformer/synthetic_destroi_vocab/transformer_benchmark_summary_n100.txt) |
 | **Transformer in-domain** (18-op) | 100 | Median R² **0.999**; R²≥0.95 **74%** | [Summary](results/transformer/indomain/transformer_indomain_benchmark_summary_n100_seed0.txt) |
-| **SRBench 20** (E2E vs DeSTrOI+E2E) | 20 | E2E **7/20** R²≥0.99; Feynman 7/12; Strogatz 0/8 | [CSV](results/srbench/srbench_20_benchmark.csv) · [summary](results/srbench/srbench_20_benchmark_summary.txt) · [docs §9](docs/LITERATURE_AND_RESULTS.md#9-our-experimental-results) |
+| **SRBench 20** (E2E vs DeSTrOI+E2E) | 20 | E2E **7/20** R²≥0.99; Feynman 7/12; Strogatz 0/8 | [CSV](results/srbench/srbench_20_benchmark.csv) · [summary](results/srbench/srbench_20_benchmark_summary.txt) · [docs §7](docs/LITERATURE_AND_RESULTS.md#7-our-experimental-results) |
 | **Taxonomy** | 133 | 119 Feynman + 14 Strogatz | [**taxonomy.csv**](results/srbench/taxonomy.csv) |
 
 Published comparison (TPSR paper, not our runs): Feynman R²≥0.99 **84.8%** → TPSR **94.9%**; Strogatz **35.7%** → **82.8%**.  
