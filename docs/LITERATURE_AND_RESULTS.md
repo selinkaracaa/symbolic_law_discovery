@@ -162,116 +162,101 @@ Time-ordered trajectories—distribution mismatch with E2E pre-training.
 
 **Paper:** *Deep Generative Symbolic Regression with Monte-Carlo-Tree-Search* · ICML 2023  
 **Authors:** Kamienny, Lample, Lamprier, Virgolin (**same lead author as E2E**)  
-**Links:** [Proceedings](https://proceedings.mlr.press/v202/kamienny23a.html) · [arXiv](https://arxiv.org/abs/2302.11223) · [Code](https://github.com/vanderschaarlab/DeepGenerativeSymbolicRegression)
+**Links:** [Proceedings](https://proceedings.mlr.press/v202/kamienny23a.html) · [Code](https://github.com/vanderschaarlab/DeepGenerativeSymbolicRegression)
 
-### Core concept: from one-shot guessing to iterative evolution
+### Problem
 
-In the **2022 E2E transformer**, the model works like trivia: it looks at \((X,y)\), runs **one forward pass**, and outputs a full equation in milliseconds. If the guess is wrong, there is **no way to go back and edit** the formula.
+In the original **2022 E2E Transformer**, the AI worked like a person playing trivia. It looked at the dataset, made a **single forward-pass guess**, and spit out an equation in a few milliseconds. If the guess was right, great. If it was wrong, the model had **no way to fix its mistake** — it couldn't go back and edit the formula.
 
-**DGSR-MCTS** introduces an **evolutionary** approach. Instead of guessing the whole equation perfectly in one shot, the system starts from an empty (or seed) expression and **mutates** it repeatedly—keeping edits that improve fit and discarding bad ones via tree search.
+**Why did the authors need a search loop?** Standard transformers are heavily dependent on their training data. If you show the E2E transformer a physical pattern or a range of numbers it has never seen before in its synthetic training set, its "predictive text" logic breaks down. On complex real-world datasets (like SRBench), a single blind guess almost never finds the exact mathematical law. You need to **explore alternative formulas**.
 
-### Problem: the out-of-distribution (OOD) wall
+### Proposed solution
 
-Transformers are heavily tied to their **synthetic training distribution**. Patterns or expression sizes never seen in pre-training break the “predictive text” logic. On hard real-world SRBench problems, a single blind guess rarely finds the exact law—you need to **explore alternative formulas**.
+**DGSR-MCTS** introduces an evolutionary approach. Instead of guessing the whole equation perfectly in one shot, the AI starts with a baseline guess and then **mutates (edits) the equation over and over**, keeping the good changes and throwing away the bad ones.
 
-The authors’ own synthetic ablation makes this concrete: on **1,000 held-out formulas** (500 in-domain, 500 OOD with up to 40 operators vs 25 in training), a one-shot policy (**DGSR-MCTS@∞**, equivalent to E2E-style full decode) solves only **16.8%** of OOD sets at R² ≥ 0.99, vs **44.0%** when the same backbone is used as a **mutation editor** inside MCTS (**DGSR-MCTS@10**).
+The clever twist: they **don't use the Transformer to write the equation from scratch**. They pre-train it to be an expert **equation editor**. Its only job is to look at an existing math formula and suggest smart mutations — such as "swap that `+` for a `*`" or "wrap this variable in a `sin()` function."
 
-### Proposed solution: transformer as “mutation brain,” not scratch writer
-
-DGSR-MCTS does **not** ask the transformer to write the equation from scratch at test time. It pre-trains the transformer to be an **equation editor**:
-
-- Input: current expression \(f\) **and** the dataset \(D\) (both tokenized, Kamienny-style).
-- Output: a structured **mutation** \(\langle A, \text{op}, B \rangle\) — e.g. replace subtree \(A\) with `7 × x₃`, or wrap a node in `sin(·)`.
-
-The mutation vocabulary is the usual SR operators (`+`, `−`, `×`, `÷`, `sin`, `cos`, `exp`, `log`, `sqrt`, …). Each expansion samples **K ∈ [8, 16]** candidate mutations from the policy (not random edits).
-
-A separate **critic network** \(C_\psi\) (shared backbone, extra value head) estimates whether a partial expression can still lead to a solution (R² ≥ 0.99).
+**DGSR-MCTS:** MCTS seeded with a pre-trained **mutation policy** (transformer-based). The policy is **fine-tuned online** from successful search trajectories.
 
 ### Method (step by step)
 
-**Pre-training (offline):** Deconstruct ground-truth synthetic formulas into **mutation sequences** (reverse of building the tree from empty). Train \(M_\theta\) to predict each mutation token-by-token given \((D, f)\). Pre-training: **12 days on 8 GPUs**.
+Every time the model is given a new dataset, it runs a heavy search loop (up to **500,000** equation evaluations per problem):
 
-**At test time — one search trial = 1,000 MCTS iterations**, then **online fine-tune** \(M_\theta\) and \(C_\psi\) on successful trajectories; reset tree and repeat until budget exhausted.
+1. **Selection** — The algorithm looks at a tree of previously attempted equations and selects one that looks promising but still needs improvement.
+2. **Mutation (the Transformer's job)** — The pre-trained Transformer takes that selected equation, looks at the target dataset, and proposes a set of intelligent mathematical mutations. It doesn't guess randomly; it uses its training history to suggest edits that actually make sense.
+3. **Evaluation** — The system builds the new mutated equations, tests them against the data, and grades them based on how well they fit (R² ≥ 0.99 counts as "solved" in the paper).
+4. **Backpropagation** — Good mutation paths get reinforced in the search tree; bad branches get deprioritized.
+5. **Online update (the core innovation)** — If the Transformer suggests a mutation that successfully makes the equation more accurate, the system **fine-tunes the Transformer on the fly right during the test**. The AI dynamically learns what works for this specific dataset as it searches.
 
-| Step | What happens |
-|------|----------------|
-| **1. Selection** | Walk the MCTS tree with PUCT: pick a partial expression that is promising but under-explored (critic value + visit counts). |
-| **2. Expansion (mutation)** | \(M_\theta\) proposes up to **K** smart mutations of the selected expression—conditioned on **both** the data and the current formula. |
-| **3. Evaluation** | Build mutated expressions; grade fit on training data (R² after optional BFGS constant polish). Solved nodes get value 1; others use critic estimate. |
-| **4. Backpropagation** | Propagate values up the tree so good mutation paths are reinforced. |
-| **5. Online update (secret sauce)** | After each trial, **fine-tune** \(M_\theta\) and \(C_\psi\) on mutations that led to better accuracy—**on this specific dataset** while search runs. |
-
-**Budget (SRBench protocol):** up to **500,000 expression evaluations** (mutations) per problem, **24-hour** wall clock cap. SRBench allows six hyper-parameter configs; the paper reports **one** tuned configuration.
-
-**One-sentence summary:** DGSR-MCTS uses the transformer as a **dataset-aware mutation policy** inside MCTS, and **learns from its own successful edits** during the search—not as a one-shot formula generator.
+**MCTS loop in one line:** select expression → mutate via policy → evaluate fit → backpropagate → online update.
 
 ### Results (published SRBench)
 
-**Scope:** 119 Feynman + 57 black-box PMLB datasets with **≤ 10 features** (same filter as Kamienny 2022); 3 random train/test splits per dataset. Metrics aggregated per SRBench convention: **median** R² on black-box, **mean proportion** R² ≥ 0.99 on Feynman; expression size after SymPy simplification.
+- Claims **state-of-the-art on SRBench** at time of publication (Pareto rank 0 on both Feynman and black-box — best accuracy–simplicity trade-off).
+- Trades **speed** for **search depth** and OOD robustness.
+- Official sequel from Meta team: *"transformer alone isn't enough."*
 
-#### SRBench accuracy & simplicity (Figure 2 — primary paper table)
+#### SRBench — ground-truth Feynman (119 datasets, ≤10 features)
 
-| Method | Black-box median R² | Black-box expr. size | Feynman R² ≥ 0.99 | Feynman expr. size | Pareto rank |
-|--------|---------------------|----------------------|-------------------|--------------------|-------------|
-| **E2E Transformer** | 0.797 | 61 | **87%** | 121 | — |
-| **DGSR-MCTS** | **0.846** | **41** | 80% | **33** | **0** (best trade-off) |
-| GP-GOMEA (SRBench baseline) | competitive | competitive | competitive | competitive | **0** (tied front) |
+| Metric | E2E Transformer | DGSR-MCTS |
+|--------|-----------------|-----------|
+| **R² ≥ 0.99** (success rate) | **87%** | 80% |
+| **Avg. expression size** (after SymPy simplify) | 121 | **33** |
 
-**How to read this:** DGSR-MCTS does **not** beat E2E on raw Feynman success rate (80% vs 87%). Its win is the **accuracy–simplicity Pareto front**: similar or better fit with **~3.7× shorter** Feynman formulas (33 vs 121 nodes) and better black-box median R² (0.846 vs 0.797) at lower complexity.
+DGSR-MCTS finds **shorter, simpler** formulas. Raw success rate on Feynman is actually slightly lower than E2E, but the formulas are ~3.7× smaller while still fitting well.
 
-#### Synthetic stress test — why search matters (Table 4, R² ≥ 0.99)
+#### SRBench — black-box (57 datasets)
 
-| Model | Role | In-domain (500) | Out-of-domain (500) |
-|-------|------|-----------------|---------------------|
-| DGSR-MCTS@∞ | One-shot full decode (≈ E2E) | 72.4% | **16.8%** |
-| DGSR-MCTS@1 | Tiny mutations | 52.2% | 26.8% |
-| **DGSR-MCTS@10** | **Paper config** | **74.8%** | **44.0%** |
+| Metric | E2E Transformer | DGSR-MCTS |
+|--------|-----------------|-----------|
+| **Median test R²** | 0.797 | **0.846** |
+| **Avg. expression size** | 61 | **41** |
 
-*Note:* Headline “~52% → ~75%” comparisons often cite this **synthetic** table, **not** the SRBench Feynman 80%/87% row above.
+#### Synthetic stress test (paper Table 4 — not SRBench)
 
-#### Ablations (paper)
+Before SRBench, the authors tested on **1,000 synthetic formulas** (500 like training, 500 harder "out-of-distribution" with bigger expressions). This shows **why search matters**:
 
-| Ablation | Finding |
-|----------|---------|
-| Breadth vs depth (K) | K ∈ [8, 16] best on in-domain and OOD synthetic |
-| Constant optimization (BFGS) | Large gain on OOD (e.g. 44% → 66% solved); slows search |
-| Online fine-tune + synthetic replay | Best Feynman proportion **0.796** in Table 6 vs 0.655 without both |
+| Approach | What it does | Hard OOD formulas solved (R² ≥ 0.99) |
+|----------|--------------|--------------------------------------|
+| One-shot decode (like E2E) | Write whole formula in one pass | **16.8%** |
+| Mutation + MCTS (paper config) | Edit formula step-by-step with search | **44.0%** |
 
-#### Compute cost (reported)
+On formulas harder than training, search more than doubles success.
 
-| | E2E Transformer | DGSR-MCTS |
-|--|-----------------|-----------|
-| Evaluations per problem | **1** forward decode (+ BFGS) | up to **500,000** mutations |
-| Wall-clock cap | seconds | **24 h** max per problem |
-| Pre-training | large (Kamienny-scale) | **+12 days**, 8 GPUs (mutation policy) |
-| Test-time weights | Fixed | **Online updates** each search trial |
+#### Computational cost
 
-The paper does **not** report per-problem minutes or a dedicated **noise** benchmark (see TPSR for noise sweeps). Latency is dominated by **sampling mutations** (repeated transformer forwards) and optional constant optimization after each mutation.
+| Model | Evaluations per problem | Speed |
+|-------|-------------------------|-------|
+| **Kamienny 2022 (E2E)** | 1 (one-shot) | **~seconds** |
+| **DGSR-MCTS** | up to **500,000** | **hours** (24 h cap per problem in paper) |
+
+Why so many evaluations? DGSR-MCTS starts with a wide-open math vocabulary. Every mutation step considers probabilities over the full operator dictionary (`add`, `sub`, `mul`, `div`, `sin`, `cos`, `exp`, `log`, `sqrt`, …). That branching factor × thousands of tree nodes = hundreds of thousands of evaluations just to find one law.
 
 ### Why this matters for DeSTrOI
 
+DGSR-MCTS is a critical benchmark because it represents the **text-and-search** approach to symbolic regression, while DeSTrOI represents the **computer vision** approach.
+
 | | DGSR-MCTS | DeSTrOI (ours) |
 |--|-----------|----------------|
-| Prior type | Learned mutation policy | **Vision** operator classifier on \((X,y)\) landscape |
-| Search | Full operator vocabulary each mutation | Could **mask** absent operators before mutations |
-| Cost | Up to 500k evals × wide branching | **O(1)** forward pass before search |
+| Bottleneck | 500k evals; must try mutating every operator | — |
+| Edge | SOTA accuracy–simplicity on SRBench | **~74%** operator prediction accuracy on 100-formula prototype (single image forward pass) |
+| Idea | — | Look at the data as an image → predict which operators exist → **mask wrong operators before search** |
 
-**Pitch:** DGSR-MCTS is the text-and-search SOTA line; DeSTrOI is the vision prior line. Plugging DeSTrOI into the mutation policy—“do not expand `sin`/`cos` branches; the landscape looks purely logarithmic”—could **shrink tree width** and cut evaluations while targeting the same Pareto accuracy. **Not yet integrated in this repo** (planned: mask mutation vocabulary).
+**The pitch:** By plugging DeSTrOI into DGSR-MCTS, you can tell the mutation policy: *"Stop testing `sin` or `cos` mutations on this dataset — the image classifier already showed this data is purely logarithmic."* You can slash the 500,000 evaluation budget down to a fraction while targeting the same accuracy. **Not yet integrated in this repo.**
 
-**Professor slide (verified numbers):**
+**Professor talking point:**
 
-> *Meta’s DGSR-MCTS adds MCTS + online fine-tuning to the Kamienny transformer. On SRBench black-box data it raises median R² from **0.797 → 0.846** with **smaller** formulas (size 41 vs 61). On synthetic OOD formulas, mutation search lifts success from **16.8%** (one-shot) to **44.0%**. The price: up to **500,000** expression evaluations per problem. Our DeSTrOI prototype gets **~74%** operator-ID accuracy on 100 synthetic formulas—we aim to pass that mask into DGSR-MCTS (or TPSR) to slash the open vocabulary search cost while holding accuracy.*
+> *Meta's DGSR-MCTS boosted black-box median R² from 0.797 to 0.846 with much simpler formulas (size 33 vs 121 on Feynman). But it needs up to 500,000 expression evaluations per problem. Our DeSTrOI gets ~74% operator-ID accuracy in one forward pass — we aim to mask the mutation vocabulary and cut that search cost while holding accuracy.*
 
 ### vs Kamienny 2022
 
 | | E2E | DGSR-MCTS |
 |--|-----|-----------|
-| Decode | One-shot beam | Iterative **mutations** |
-| Transformer role | Write full formula | **Edit** existing formula |
-| Weights at test | Fixed | **Online** fine-tune |
-| Speed | ~seconds | Up to **500k** evals / 24 h |
-| OOD / hard synthetic | Weak (16.8% OOD) | Stronger (44.0% OOD) |
-| SRBench Feynman R²≥0.99 | Higher rate (87%) | Shorter formulas (80%, size 33) |
+| Decode | One-shot | Many iterations |
+| Transformer's job | Write full formula | **Edit** existing formula |
+| Weights at test | Fixed | Online updates |
+| Speed | Fast (~seconds) | Slow (up to 500k evals) |
+| OOD / hard benchmarks | Weaker | Stronger |
 
 ---
 

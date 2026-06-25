@@ -91,46 +91,34 @@ Symbolic regression (SR) shifted after Kamienny et al. (NeurIPS 2022): transform
 | **Authors** | Kamienny, Lample, Lamprier, Virgolin (same lead author as E2E) |
 | **Venue** | ICML 2023 |
 | **Link** | [Proceedings](https://proceedings.mlr.press/v202/kamienny23a.html) · [Code](https://github.com/vanderschaarlab/DeepGenerativeSymbolicRegression) |
-| **Idea** | E2E is **fast but OOD-weak** without search. DGSR-MCTS runs **MCTS** where the transformer is an **equation editor** (mutation policy), **online fine-tuned** on successful mutations—not a one-shot formula writer. |
+| **Idea** | E2E transformer is **fast but OOD-weak** without search. DGSR-MCTS runs **MCTS** with a **neural mutation policy** (pre-trained transformer), **online fine-tuned** on successful mutations. The transformer is an **equation editor**, not a one-shot formula writer. |
 
-### One-shot vs evolution
+### vs Kamienny 2022
 
-| E2E (2022) | DGSR-MCTS (2023) |
-|------------|------------------|
-| Single forward pass → full formula | Start empty → **mutate** repeatedly |
-| Wrong guess = no recovery | Search tree keeps good edits, drops bad ones |
-| Fixed weights at test | **Fine-tune policy on this dataset** during search |
+| E2E Transformer | DGSR-MCTS |
+|-----------------|-----------|
+| One-shot decode (trivia guess) | Many search iterations (mutate & evolve) |
+| Fixed weights at test | Policy updates **during** search on this dataset |
+| Fast (~seconds) | Slow (up to **500k** eval budget) |
+| OOD gap | **SOTA on SRBench** Pareto front (paper claim) |
 
-### MCTS loop (each trial = 1,000 iterations)
+**MCTS loop:** select expression → mutate via policy → evaluate fit → backpropagate → **online fine-tune**.
 
-1. **Selection** — pick promising partial expression (PUCT + critic).
-2. **Mutation** — transformer proposes K smart edits given \((D, f)\) (e.g. swap `+` for `×`, wrap in `sin`).
-3. **Evaluation** — score R² on data (BFGS optional).
-4. **Backprop** — reinforce paths that led to better fit.
-5. **Online update** — train mutation policy on winning trajectories; reset tree; repeat until **500k eval** or **24 h** cap.
-
-### SRBench numbers (paper, ≤10 features)
-
-| Metric | E2E | DGSR-MCTS |
-|--------|-----|-----------|
-| Feynman R² ≥ 0.99 | **87%** | 80% |
-| Feynman expr. size | 121 | **33** |
-| Black-box median R² | 0.797 | **0.846** |
-| Black-box expr. size | 61 | **41** |
-| Pareto front (acc. vs size) | — | **Rank 0** (tied with GP-GOMEA) |
-
-**Synthetic OOD** (500 hard formulas, R² ≥ 0.99): one-shot **16.8%** → mutations **44.0%**.
-
-### Compute bottleneck (our entry point)
+### SRBench numbers (paper)
 
 | | E2E | DGSR-MCTS |
 |--|-----|-----------|
-| Evals / problem | 1 | up to **500,000** |
-| Typical runtime | seconds | hours (24 h max in protocol) |
+| Feynman R² ≥ 0.99 | 87% | 80% |
+| Feynman expr. size | 121 | **33** |
+| Black-box median R² | 0.797 | **0.846** |
 
-**DeSTrOI pitch:** Mask absent operators **before** mutations → shrink branching → same accuracy at lower eval budget. **~74%** operator accuracy on our 100-formula synthetic benchmark; **not yet wired** into DGSR-MCTS in this repo.
+Hard synthetic formulas (OOD): one-shot **16.8%** solved → mutation + search **44.0%**.
 
-**One line:** *Meta’s answer to Kamienny—mutate, don’t guess; learn online; pay with 500k evals. DeSTrOI could prune the mutation vocabulary.*
+### DeSTrOI angle
+
+DGSR must try every operator mutation → **500k evals**. DeSTrOI (~**74%** operator accuracy) could mask absent operators before search and cut that budget. **Not wired yet.**
+
+**One line:** *"Transformer alone isn't enough — add MCTS + online learning. DeSTrOI could prune the mutation vocabulary."*
 
 ---
 
