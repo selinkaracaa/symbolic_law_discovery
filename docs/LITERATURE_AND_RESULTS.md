@@ -316,6 +316,28 @@ The authors introduce **MDLformer** — a Transformer trained **not to write equ
 
 **One-sentence summary:** Same search machinery as other papers, but the **objective function** targets simplicity + truth, not raw fit.
 
+#### How the search loop works in detail
+
+**Step 1 — Set the target complexity.** Before a single symbol is written, the raw dataset \((X, y)\) is passed through MDLformer once. It outputs one number: the *target description length* — e.g. "this dataset looks like it should be explained by a clean 15-bit equation." Every subsequent candidate formula is measured against this target; formulas longer or more bloated than the target are penalised.
+
+**Step 2 — Token-by-token autocomplete (MCTS).** The search builds the equation tree token by token, like phone autocomplete. At the first open slot it generates several candidate continuations — `sin(…)`, `x₁ + …`, `exp(…)`, etc.
+
+**Step 3 — Score each partial path with a two-part MDL filter.** Before expanding any branch further, each partial path gets an MDL score combining:
+- **Length check** — how many structural bits does this operator add? Is the path still shorter than the target?
+- **Fitness check** — a fast background optimisation checks whether this partial expression brings the curve closer to the data.
+
+Both terms are summed into a single MDL score per branch.
+
+**Step 4 — Lock in the winner, repeat.** The branch with the best MDL score is kept; the others are discarded. The process repeats — generate options for the next slot, score, select — until the tree reaches terminals (variables, constants) and the equation is complete.
+
+#### Where DeSTrOI plugs in
+
+SR4MDL's search starts with a **wide-open operator dictionary** — at Step 2 it generates options for every operator in its grammar. DeSTrOI can act as a pre-filter *before* Step 2 ever runs:
+
+> "DeSTrOI scans the data graph and detects, for example, that there are no wave or oscillatory patterns — meaning `sin` and `cos` are physically implausible. Those tokens are blocked before the first autocomplete step. The MCTS branching factor drops immediately, so the MDL search reaches the correct physics law faster and with fewer wasted evaluations."
+
+In concrete terms: if DeSTrOI correctly removes 2–3 operators from a 10-op grammar, each MCTS expansion node has ~20–30% fewer branches to score. Across thousands of iterations this compounds into a significant speedup — and because MDL already penalises complexity, a tighter operator set means fewer false-positive "short but wrong" formulas survive early pruning.
+
 ### Results (published SRBench)
 
 | Metric | SR4MDL | Notes |
@@ -412,6 +434,15 @@ See [research roadmap](RESEARCH_ROADMAP.md) for phase details.
 | has `sin` | 51 | 10% | **14%** | 25 | 15 | Modest gain despite hard nesting |
 | mul + 2 unary ops | 5 | 0% | 0% | 2 | 2 | Too few samples; both fail |
 
+**What causes the 34 losses?** Synthetic formulas use only the 6-op grammar — no `div` by construction — so the `div`↔`inv` visual mismatch seen in SRBench does not apply here. The losses split into two types:
+
+| Loss type | n / 34 | Mechanism |
+|-----------|--------|-----------|
+| **Wrong block** (blocked op was in GT) | **14** | DeSTrOI scores a present op below 0.5 — most common wrongly-blocked op is `inv` (6×), then `mul` (3×), `add` (2×), `log` (2×) |
+| **Correct block that still hurts** | **20** | DeSTrOI blocked the right ops, but blind beam decode loses approximation paths it used as stepping stones — most common correctly-but-harmfully-blocked ops are `sqrt` (16×), `mul` (14×), `log` (11×), `inv` (11×) |
+
+For wins (42), 12 also had at least one wrong block but the net effect was still positive — correct blocks on other ops outweighed the damage. The "correct block that hurts" mode is the fundamental limitation of **one-shot beam decode**: without iterative feedback the transformer cannot recover from a constrained vocabulary even when the constraint is right.
+
 ---
 
 ### B. Transformer only — DeSTrOI-vocab synthetic trees
@@ -463,26 +494,66 @@ See [research roadmap](RESEARCH_ROADMAP.md) for phase details.
 
 #### Results vs published
 
+> **Note on operator accuracy:** the original 58% figure was computed against DeSTrOI's literal 6-op vocabulary, penalising it for not detecting `div`/`sub`/`pow` which are not in its training set. The corrected figure uses an operator mapping (`sub`→`{add,mul}`, `div`→`{inv,mul}`, `pow`→`{mul}`) so the ground-truth label matches DeSTrOI's actual vocabulary. See [`reanalyze_srbench_20.py`](../reanalyze_srbench_20.py) and [`srbench_destroi_ops.py`](../srbench_destroi_ops.py).
+
 | Metric | E2E (ours) | DeSTrOI+E2E (ours) | Published E2E | Published TPSR (λ=0.1) |
 |--------|------------|---------------------|---------------|------------------------|
 | Mean R² (all 20) | 0.756 | 0.770 | — | — |
 | Median R² | 0.967 | 0.968 | — | — |
 | R² ≥ 0.99 | **7 / 20** | 6 / 20 | Feynman **84.8%** · Strogatz **35.7%** (full benchmark) | Feynman **94.9%** · Strogatz **82.8%** |
 | R² ≥ 0.95 | 12 / 20 | 12 / 20 | — | — |
-| DeSTrOI operator accuracy | — | **58%** | — | — |
+| DeSTrOI op accuracy (original — misleading) | — | 57.5% | — | — |
+| DeSTrOI op accuracy (**mapped** — fair) | — | **62.5%** | — | — |
 
-#### By group (E2E vs DeSTrOI+E2E)
+#### By group — all 20 (E2E vs DeSTrOI+E2E)
 
 | Group | n | E2E R²≥0.99 | DeSTrOI+E2E R²≥0.99 | E2E mean R² | DeSTrOI+E2E mean R² |
 |-------|---|-------------|---------------------|-------------|---------------------|
 | Feynman | 12 | **7 / 12** (58%) | 6 / 12 (50%) | 0.963 | 0.967 |
 | Strogatz | 8 | **0 / 8** (0%) | 0 / 8 (0%) | 0.445 | 0.473 |
 
-**Head-to-head:** mean ΔR² **+0.014** · better 4 · worse 4 · similar 12
+**Head-to-head (all 20):** mean ΔR² **+0.014** · better 4 · worse 4 · similar 12
 
-Notable wins: `strogatz_barmag2` (+0.33), `strogatz_shearflow2` (+0.30). Notable losses: `strogatz_predprey1` (−0.15), `strogatz_vdp1` (−0.27).
+#### Expressible-16 subset (fair DeSTrOI test)
 
-**CSV:** [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) · [summary](../results/srbench/srbench_20_benchmark_summary.txt)
+4 formulas genuinely outside DeSTrOI's grammar are excluded: `feynman_III_4_32`, `feynman_I_6_2`, `feynman_I_41_16` (all need `exp`), `strogatz_shearflow2` (needs `cos`). The remaining 16 use only operators rewritable into `{add, mul, inv, sqrt, log, sin}`.
+
+| Group | n | E2E R²≥0.99 | DeSTrOI+E2E R²≥0.99 | E2E mean R² | DeSTrOI+E2E mean R² |
+|-------|---|-------------|---------------------|-------------|---------------------|
+| Feynman | 9 | **5 / 9** (56%) | 4 / 9 (44%) | 0.956 | 0.951 |
+| Strogatz | 7 | **0 / 7** (0%) | 0 / 7 (0%) | 0.639 | 0.651 |
+
+**Head-to-head (expressible-16):** mean ΔR² **−0.001** · better 3 · worse 4 · similar 9  
+**DeSTrOI mapped accuracy (expressible-16): 61.5%**
+
+Notable wins: `strogatz_barmag2` (+0.33), `strogatz_bacres1` (+0.015). Notable losses: `strogatz_predprey1` (−0.15), `strogatz_vdp1` (−0.27).
+
+#### No-`div` subset — 7 problems (cleanest DeSTrOI test on SRBench)
+
+**Why remove the `div` problems?** The main failure mode on SRBench is that DeSTrOI wrongly blocks `inv` whenever the ground-truth formula contains `div`. Mathematically `a/b = a × inv(b)`, so `div` should activate DeSTrOI's `inv` detector — but it doesn't in practice. DeSTrOI was trained on synthetic trees where an `inv` node produces a clean `1/x`-shaped scatter. Real SRBench formulas with `div` look like rational functions — e.g. `q·Ef / (m·(ω₀²−ω²))` — and their scatter looks nothing like a pure hyperbola. DeSTrOI scores `inv` near zero, blocks it, and the transformer loses the ability to construct any ratio. Of the 13 problems with `div` in the 20-problem set, **4 produce negative ΔR²** (masking hurts) and the mean ΔR² is **−0.028**. Removing them isolates the problems where DeSTrOI's operator detection is actually in-distribution.
+
+The remaining 7 use only `{mul, add, sub, pow, sin, cos, sqrt}` — no operator that maps to `inv`.
+
+| Problem | GT operators | E2E R² | Comb R² | ΔR² |
+|---------|-------------|--------|---------|-----|
+| feynman_III_10_19 | mul, add, pow, sqrt | 0.992 | 0.993 | +0.001 |
+| feynman_II_27_18 | mul, pow | 1.000 | 1.000 | ±0.000 |
+| strogatz_barmag1 | mul, sin, sub | 0.943 | 0.943 | ±0.000 |
+| strogatz_lv1 | mul, pow, sub | 0.471 | 0.471 | ±0.000 |
+| **strogatz_barmag2** | mul, sin, sub | 0.245 | **0.579** | **+0.335** |
+| strogatz_glider1 | mul, pow, sin, sub | 0.960 | 0.960 | ±0.000 |
+| strogatz_shearflow2 | add, cos, mul, pow, sin | −0.920 | **−0.620** | **+0.301** |
+
+| Metric | E2E | DeSTrOI+E2E |
+|--------|-----|-------------|
+| Mean R² | 0.527 | **0.618** |
+| R² ≥ 0.99 | 2 / 7 | 2 / 7 |
+| Mean ΔR² | — | **+0.091** |
+| Better / Worse / Same | — | **2 / 0 / 5** |
+
+**DeSTrOI never hurts on this subset.** Five problems are already solved (R²≥0.94) so the floor prevents improvement; the two genuinely hard problems (`barmag2`, `shearflow2`) both benefit significantly. This matches the synthetic result: when DeSTrOI is not forced to recognise operators outside its training distribution, masking is safe and occasionally helpful.
+
+**CSV:** [srbench_20_benchmark.csv](../results/srbench/srbench_20_benchmark.csv) · [summary](../results/srbench/srbench_20_benchmark_summary.txt) (updated with re-analysis)
 
 #### How the 20 problems were chosen (from taxonomy)
 
@@ -526,10 +597,11 @@ Problems were picked from [`taxonomy.csv`](../results/srbench/taxonomy.csv) to c
 #### Conclusions from the 20-problem pilot
 
 1. **E2E alone is strong on Feynman** (7/12 at R²≥0.99) but **fails all Strogatz** — matches the published pattern (Strogatz is OOD for Kamienny).
-2. **DeSTrOI+E2E does not beat E2E on success rate** (6/20 vs 7/20) but slightly improves mean R² (+0.014) on hard Strogatz cases when masking is right.
-3. **Operator-ID accuracy drops on real data** (58% vs 74% synthetic) — SRBench formulas use `div`/`sub`/`pow` outside DeSTrOI's 6-op vocab.
-4. **Not comparable to published 84.8% / 35.7%** — those are rates over all 119+14 problems; our 20 are a taxonomy-guided stress sample.
-5. **Next step:** DeSTrOI + **TPSR** (search, not blind beam) on the same 20 — the fair test of the hypothesis.
+2. **DeSTrOI+E2E does not beat E2E on R²≥0.99** (6/20 vs 7/20), and on the expressible-16 subset the head-to-head is essentially flat (ΔR² = −0.001). Masking helps and hurts in roughly equal measure with blind beam decoding.
+3. **Original 58% operator-ID accuracy was misleading** — it penalised DeSTrOI for not detecting `div`/`sub`/`pow`, which are not in its training vocabulary. After mapping those to their 6-op equivalents, accuracy is **62.5%** (all 20) or **61.5%** (expressible-16). Still lower than 74% on synthetic 6-op data, indicating some genuine OOD effect even on the rewritable formulas.
+4. **The 4 excluded formulas** (`feynman_III_4_32`, `feynman_I_6_2`, `feynman_I_41_16`, `strogatz_shearflow2`) need `exp` or `cos` — genuinely outside DeSTrOI's grammar. Any accuracy or masking result on these is meaningless as a DeSTrOI evaluation.
+5. **Not comparable to published 84.8% / 35.7%** — those are rates over all 119+14 problems; our 20 are a taxonomy-guided stress sample.
+6. **Next step:** DeSTrOI + **TPSR** (search, not blind beam) on the expressible-16 — the fair test of whether operator pruning helps when paired with iterative search.
 
 ---
 

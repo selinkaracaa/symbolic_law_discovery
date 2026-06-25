@@ -1,53 +1,164 @@
-SRBench 20-problem benchmark — Kamienny E2E vs DeSTrOI+Kamienny
-Problems: 20
+SRBench 20-problem benchmark — re-analysis with fair DeSTrOI metrics
+====================================================================
+
+Two corrections vs the original summary:
+  1. Operator mapping: sub→{add,mul}, div→{inv,mul}, pow→{mul}
+     when computing DeSTrOI accuracy against ground truth.
+  2. Expressible-16 subset: 4 formulas that require exp or cos
+     (genuinely outside the 6-op grammar) reported separately.
+
+Excluded (irreducible ops): ['feynman_III_4_32', 'feynman_I_41_16', 'feynman_I_6_2', 'strogatz_shearflow2']
+  feynman_III_4_32: irreducible=['exp']
+  feynman_I_41_16: irreducible=['exp']
+  feynman_I_6_2: irreducible=['exp']
+  strogatz_shearflow2: irreducible=['cos']
+
+
+══ ALL 20 PROBLEMS — original accuracy (literal DeSTrOI-6 labels) ══
 
 --- Transformer alone ---
   Mean R²:   0.7556
   Median R²: 0.9666
   R² ≥ 0.99: 7 / 20
   R² ≥ 0.95: 12 / 20
-  Mean fit time: 115.6s
 
 --- DeSTrOI + Transformer ---
   Mean R²:   0.7695
   Median R²: 0.9683
   R² ≥ 0.99: 6 / 20
   R² ≥ 0.95: 12 / 20
-  Mean fit time: 110.6s
 
 --- Head-to-head (DeSTrOI+E2E minus E2E) ---
-  Mean ΔR²: +0.0139
-  Better (Δ>0.005): 4
+  Mean ΔR²:          +0.0139
+  Better (Δ> 0.005): 4
   Worse  (Δ<-0.005): 4
-  Similar: 12
+  Similar:           12
 
 Mean DeSTrOI operator accuracy: 57.5%
 
 Per problem:
-  feynman_III_10_19             E2E= 0.9919  Comb= 0.9929  Δ=+0.0010  acc=100%  blocked=inv,log,sin
-  feynman_II_27_18              E2E= 1.0000  Comb= 1.0000  Δ=-0.0000  acc=33%  blocked=inv
-  feynman_I_14_4                E2E= 1.0000  Comb= 1.0000  Δ=+0.0000  acc=33%  blocked=inv
-  feynman_III_15_14             E2E= 0.9919  Comb= 0.9899  Δ=-0.0020  acc=67%  blocked=add,inv,sqrt
-  feynman_II_11_3               E2E= 0.9956  Comb= 0.9967  Δ=+0.0011  acc=50%  blocked=inv,log
-  feynman_III_4_32              E2E= 0.9969  Comb= 0.9978  Δ=+0.0009  acc=67%  blocked=add,log,sqrt
-  strogatz_barmag1              E2E= 0.9427  Comb= 0.9427  Δ=+0.0000  acc=67%  blocked=inv,log
-  strogatz_lv1                  E2E= 0.4706  Comb= 0.4706  Δ=+0.0000  acc=33%  blocked=inv
-  strogatz_predprey1            E2E= 0.8807  Comb= 0.7324  Δ=-0.1483  acc=50%  blocked=inv
-  strogatz_vdp1                 E2E= 0.0061  Comb=-0.2664  Δ=-0.2725  acc=50%  blocked=log,sin
-  feynman_III_19_51             E2E= 0.8885  Comb= 0.8689  Δ=-0.0195  acc=83%  blocked=add,inv,log,sqrt
-  feynman_III_9_52              E2E= 0.7784  Comb= 0.8546  Δ=+0.0762  acc=17%  blocked=sin
-  feynman_I_9_18                E2E= 0.9760  Comb= 0.9760  Δ=+0.0000  acc=50%  blocked=log
-  feynman_II_6_15a              E2E= 0.9804  Comb= 0.9750  Δ=-0.0054  acc=83%  blocked=inv,sin
-  feynman_I_6_2                 E2E= 0.9615  Comb= 0.9615  Δ=+0.0000  acc=67%  blocked=inv,log
-  feynman_I_41_16               E2E= 0.9951  Comb= 0.9913  Δ=-0.0038  acc=33%  blocked=sin
-  strogatz_bacres1              E2E= 0.9717  Comb= 0.9868  Δ=+0.0151  acc=67%  blocked=add,log,sin,sqrt
-  strogatz_barmag2              E2E= 0.2447  Comb= 0.5794  Δ=+0.3347  acc=67%  blocked=inv,sqrt
-  strogatz_glider1              E2E= 0.9599  Comb= 0.9599  Δ=+0.0000  acc=67%  blocked=inv,log
-  strogatz_shearflow2           E2E=-0.9203  Comb=-0.6197  Δ=+0.3005  acc=67%  blocked=log
+  feynman_III_10_19             E2E= 0.9919  Comb= 0.9929  Δ=+0.0010  acc=100%
+  feynman_II_27_18              E2E= 1.0000  Comb= 1.0000  Δ=-0.0000  acc=33%
+  feynman_I_14_4                E2E= 1.0000  Comb= 1.0000  Δ=+0.0000  acc=33%
+  feynman_III_15_14             E2E= 0.9919  Comb= 0.9899  Δ=-0.0020  acc=67%
+  feynman_II_11_3               E2E= 0.9956  Comb= 0.9967  Δ=+0.0011  acc=50%
+  feynman_III_4_32              E2E= 0.9969  Comb= 0.9978  Δ=+0.0009  acc=67%
+  strogatz_barmag1              E2E= 0.9427  Comb= 0.9427  Δ=+0.0000  acc=67%
+  strogatz_lv1                  E2E= 0.4706  Comb= 0.4706  Δ=+0.0000  acc=33%
+  strogatz_predprey1            E2E= 0.8807  Comb= 0.7324  Δ=-0.1483  acc=50%
+  strogatz_vdp1                 E2E= 0.0061  Comb=-0.2664  Δ=-0.2725  acc=50%
+  feynman_III_19_51             E2E= 0.8885  Comb= 0.8689  Δ=-0.0195  acc=83%
+  feynman_III_9_52              E2E= 0.7784  Comb= 0.8546  Δ=+0.0762  acc=17%
+  feynman_I_9_18                E2E= 0.9760  Comb= 0.9760  Δ=+0.0000  acc=50%
+  feynman_II_6_15a              E2E= 0.9804  Comb= 0.9750  Δ=-0.0054  acc=83%
+  feynman_I_6_2                 E2E= 0.9615  Comb= 0.9615  Δ=+0.0000  acc=67%
+  feynman_I_41_16               E2E= 0.9951  Comb= 0.9913  Δ=-0.0038  acc=33%
+  strogatz_bacres1              E2E= 0.9717  Comb= 0.9868  Δ=+0.0151  acc=67%
+  strogatz_barmag2              E2E= 0.2447  Comb= 0.5794  Δ=+0.3347  acc=67%
+  strogatz_glider1              E2E= 0.9599  Comb= 0.9599  Δ=+0.0000  acc=67%
+  strogatz_shearflow2           E2E=-0.9203  Comb=-0.6197  Δ=+0.3005  acc=67%
 
---- By SRBench group (E2E) ---
-  feynman     n=12  R²≥0.99: 7/12 (58%)  mean R²=0.963
-  strogatz    n= 8  R²≥0.99: 0/8 (0%)  mean R²=0.445
 
-NOTE: Published Kamienny: Feynman 84.8% and Strogatz 35.7% are success RATES
-  over all 119 + 14 problems — not comparable to this 20-problem pilot.
+══ ALL 20 PROBLEMS — mapped accuracy (sub/div/pow rewritten) ════════
+
+Accuracy now measures: for each of DeSTrOI's 6 ops, was the
+present/absent prediction correct after rewriting GT into 6-op vocab?
+
+--- Transformer alone ---
+  Mean R²:   0.7556
+  Median R²: 0.9666
+  R² ≥ 0.99: 7 / 20
+  R² ≥ 0.95: 12 / 20
+
+--- DeSTrOI + Transformer ---
+  Mean R²:   0.7695
+  Median R²: 0.9683
+  R² ≥ 0.99: 6 / 20
+  R² ≥ 0.95: 12 / 20
+
+--- Head-to-head (DeSTrOI+E2E minus E2E) ---
+  Mean ΔR²:          +0.0139
+  Better (Δ> 0.005): 4
+  Worse  (Δ<-0.005): 4
+  Similar:           12
+
+Mean DeSTrOI operator accuracy: 62.5%
+
+Per problem:
+  feynman_III_10_19             E2E= 0.9919  Comb= 0.9929  Δ=+0.0010  acc=100%
+  feynman_II_27_18              E2E= 1.0000  Comb= 1.0000  Δ=-0.0000  acc=33%
+  feynman_I_14_4                E2E= 1.0000  Comb= 1.0000  Δ=+0.0000  acc=17%
+  feynman_III_15_14             E2E= 0.9919  Comb= 0.9899  Δ=-0.0020  acc=50%
+  feynman_II_11_3               E2E= 0.9956  Comb= 0.9967  Δ=+0.0011  acc=50%
+  feynman_III_4_32              E2E= 0.9969  Comb= 0.9978  Δ=+0.0009  acc=83%
+  strogatz_barmag1              E2E= 0.9427  Comb= 0.9427  Δ=+0.0000  acc=83%
+  strogatz_lv1                  E2E= 0.4706  Comb= 0.4706  Δ=+0.0000  acc=50%
+  strogatz_predprey1            E2E= 0.8807  Comb= 0.7324  Δ=-0.1483  acc=33%
+  strogatz_vdp1                 E2E= 0.0061  Comb=-0.2664  Δ=-0.2725  acc=83%
+  feynman_III_19_51             E2E= 0.8885  Comb= 0.8689  Δ=-0.0195  acc=50%
+  feynman_III_9_52              E2E= 0.7784  Comb= 0.8546  Δ=+0.0762  acc=50%
+  feynman_I_9_18                E2E= 0.9760  Comb= 0.9760  Δ=+0.0000  acc=67%
+  feynman_II_6_15a              E2E= 0.9804  Comb= 0.9750  Δ=-0.0054  acc=67%
+  feynman_I_6_2                 E2E= 0.9615  Comb= 0.9615  Δ=+0.0000  acc=67%
+  feynman_I_41_16               E2E= 0.9951  Comb= 0.9913  Δ=-0.0038  acc=50%
+  strogatz_bacres1              E2E= 0.9717  Comb= 0.9868  Δ=+0.0151  acc=83%
+  strogatz_barmag2              E2E= 0.2447  Comb= 0.5794  Δ=+0.3347  acc=83%
+  strogatz_glider1              E2E= 0.9599  Comb= 0.9599  Δ=+0.0000  acc=83%
+  strogatz_shearflow2           E2E=-0.9203  Comb=-0.6197  Δ=+0.3005  acc=67%
+
+
+══ EXPRESSIBLE-16 SUBSET — mapped accuracy ═══════════════════════════
+
+Formulas whose ground truth contains ONLY ops rewritable to {add, mul,
+inv, sqrt, log, sin}. This is the fairest test of DeSTrOI on SRBench.
+
+--- Transformer alone ---
+  Mean R²:   0.8174
+  Median R²: 0.9658
+  R² ≥ 0.99: 5 / 16
+  R² ≥ 0.95: 9 / 16
+
+--- DeSTrOI + Transformer ---
+  Mean R²:   0.8162
+  Median R²: 0.9675
+  R² ≥ 0.99: 4 / 16
+  R² ≥ 0.95: 9 / 16
+
+--- Head-to-head (DeSTrOI+E2E minus E2E) ---
+  Mean ΔR²:          -0.0012
+  Better (Δ> 0.005): 3
+  Worse  (Δ<-0.005): 4
+  Similar:           9
+
+Mean DeSTrOI operator accuracy: 61.5%
+
+Per problem:
+  feynman_III_10_19             E2E= 0.9919  Comb= 0.9929  Δ=+0.0010  acc=100%
+  feynman_II_27_18              E2E= 1.0000  Comb= 1.0000  Δ=-0.0000  acc=33%
+  feynman_I_14_4                E2E= 1.0000  Comb= 1.0000  Δ=+0.0000  acc=17%
+  feynman_III_15_14             E2E= 0.9919  Comb= 0.9899  Δ=-0.0020  acc=50%
+  feynman_II_11_3               E2E= 0.9956  Comb= 0.9967  Δ=+0.0011  acc=50%
+  strogatz_barmag1              E2E= 0.9427  Comb= 0.9427  Δ=+0.0000  acc=83%
+  strogatz_lv1                  E2E= 0.4706  Comb= 0.4706  Δ=+0.0000  acc=50%
+  strogatz_predprey1            E2E= 0.8807  Comb= 0.7324  Δ=-0.1483  acc=33%
+  strogatz_vdp1                 E2E= 0.0061  Comb=-0.2664  Δ=-0.2725  acc=83%
+  feynman_III_19_51             E2E= 0.8885  Comb= 0.8689  Δ=-0.0195  acc=50%
+  feynman_III_9_52              E2E= 0.7784  Comb= 0.8546  Δ=+0.0762  acc=50%
+  feynman_I_9_18                E2E= 0.9760  Comb= 0.9760  Δ=+0.0000  acc=67%
+  feynman_II_6_15a              E2E= 0.9804  Comb= 0.9750  Δ=-0.0054  acc=67%
+  strogatz_bacres1              E2E= 0.9717  Comb= 0.9868  Δ=+0.0151  acc=83%
+  strogatz_barmag2              E2E= 0.2447  Comb= 0.5794  Δ=+0.3347  acc=83%
+  strogatz_glider1              E2E= 0.9599  Comb= 0.9599  Δ=+0.0000  acc=83%
+
+--- By SRBench group (Expressible-16, E2E) ---
+  feynman     n= 9  R²≥0.99: 5/9 (56%)  mean R²=0.956
+  strogatz    n= 7  R²≥0.99: 0/7 (0%)  mean R²=0.639
+
+NOTE: Published Kamienny rates (Feynman 84.8%, Strogatz 35.7%) are over
+all 119+14 problems — not comparable to this 20-problem pilot.
+
+KEY TAKEAWAY:
+  • Original acc 57.5% was misleading — penalised DeSTrOI for not
+    detecting 'div'/'sub'/'pow' that are not in its vocabulary.
+  • Mapped acc on expressible-16 gives the honest operator-ID score.
+  • R² results are unchanged (no rerun); only interpretation improves.
