@@ -280,35 +280,66 @@ Why so many evaluations? DGSR-MCTS starts with a wide-open math vocabulary. Ever
 
 ## 5. SR4MDL 2025
 
-**Paper:** *Symbolic regression via MDLformer-guided search* · ICLR 2025  
-**Authors:** Yu, Ding, Li, Jin (Tsinghua)  
+**Paper:** *Symbolic Regression via MDLformer-Guided Search* · ICLR 2025  
+**Authors:** Yu, Ding, Li, Jin (**Tsinghua University**)  
 **Links:** [Paper](https://proceedings.iclr.cc/paper_files/paper/2025/file/a402493de088886740b5939f666a6e56-Paper-Conference.pdf) · [Code](https://github.com/tsinghua-fib-lab/SR4MDL)
 
-### Problem
+### Core concept: Occam's Razor & Minimum Description Length (MDL)
 
-**High R² ≠ correct formula.** Prediction error does not decrease monotonically as search approaches the true expression—search gets lost. Models “cheat” with long, high-R² formulas.
+TPSR, DGSR-MCTS, and uDSR mostly **changed the search method** (MCTS, GP, mutation policies). SR4MDL steps back and argues: *"It doesn't matter how smart your search is if your grading system is broken. We don't need a better search method — we need a better math objective."*
 
-### Proposed solution
+In science, **Occam's Razor** says: if two explanations fit equally well, the simpler one is usually correct. In computer science this becomes **Minimum Description Length (MDL)** — the true law compresses into a short symbol string (e.g. \(F = ma\)), while a "cheat" formula needs a long bloated expression to hug noisy points.
 
-Optimize **Minimum Description Length (MDL)** instead of raw MSE:
+SR4MDL changes the **reward system**. Instead of *"minimize prediction error"*, it asks: *"find the shortest, simplest formula that explains the data."*
 
-1. Train **MDLformer** (transformer) to estimate description length of data.
-2. Use MDL as **search objective** in MCTS / GP.
-3. Training data uses Kamienny-style synthetic generator.
+### Problem: the high R² illusion & non-monotonic loss
 
-### Results (published)
+Almost all neural SR models grade with MSE or R². The authors argue this is fundamentally flawed:
 
-| Claim | Value |
-|-------|-------|
-| Exact recovery on ground-truth | ~**50 / 133** problems |
-| vs prior SOTA | **+43.92%** recovery rate (paper) |
-| Black-box (122) | Strong accuracy–complexity tradeoff |
+| Issue | What goes wrong |
+|-------|-----------------|
+| **The illusion** | AI can "cheat" with a huge polynomial that passes through every noisy point → R² = 1.0, wrong physics |
+| **Non-monotonic loss** | In deep learning we expect error to drop smoothly as we approach the truth. In SR it **doesn't** — a formula one token away from correct (e.g. `sin(x)` vs `cos(x)`) can have terrible MSE. Search loops (MCTS, GP) get **lost** because the score landscape jumps around |
+
+Fitting data well ≠ finding the right formula.
+
+### Proposed solution: MDLformer
+
+The authors introduce **MDLformer** — a Transformer trained **not to write equations**, but to estimate the **description length / complexity** of a dataset.
+
+**Method (step by step):**
+
+1. **Synthetic training** — Kamienny-style generator creates millions of random formulas; each is evaluated on data points.
+2. **Learning the metric** — MDLformer looks at raw \((X,y)\) and predicts a single number: the ideal **description length** of the hidden equation.
+3. **Guided search** — On a new dataset, run **MCTS or GP**, but score branches with **MDL** (from MDLformer), not raw MSE/R².
+4. The search acts like a **metal detector** — it hunts formulas that match the short, elegant complexity MDLformer predicted for this data.
+
+**One-sentence summary:** Same search machinery as other papers, but the **objective function** targets simplicity + truth, not raw fit.
+
+### Results (published SRBench)
+
+| Metric | SR4MDL | Notes |
+|--------|--------|-------|
+| **Exact structural recovery** | **~50 / 133** ground-truth problems | Noise-free physics benchmarks |
+| vs prior SOTA | **+43.92%** recovery rate (paper) | Largest jump on **exact match**, not just R² |
+| Black-box (122 datasets) | Strong accuracy–complexity trade-off | Short formulas without sacrificing predictive power |
+
+**Why this matters:** Prior work (TPSR, DGSR-MCTS) added more search. SR4MDL shows that **fixing what you optimize** can recover the true physical structure far better than error-driven search alone.
+
+### vs Kamienny / TPSR / DGSR
+
+| | Kamienny / TPSR / DGSR | SR4MDL |
+|--|------------------------|--------|
+| Main lever | Better **search** (MCTS, mutations, GP) | Better **objective** (MDL) |
+| Grades formulas by | R² / MSE (+ complexity penalty in TPSR) | Description length |
+| Strength | High R² on many problems | **Exact recovery** on ground-truth |
+| Weakness | Can bloat formulas; search gets lost | Heavy setup; newest; less reproduced |
 
 ### Takeaway
 
-*Fitting well ≠ finding the right formula—fix the objective, not just the search.*
+*Fitting well ≠ finding the right formula — fix the objective, not just the search.*
 
-Direct competitor to our goal: **short, correct structure** (like DeSTrOI pruning operators).
+Direct competitor to our goal: **short, correct structure** (like DeSTrOI pruning operators before search).
 
 ---
 
@@ -354,26 +385,32 @@ See [research roadmap](RESEARCH_ROADMAP.md) for phase details.
 
 | Metric | Transformer alone | DeSTrOI + Transformer |
 |--------|-------------------|------------------------|
-| Mean R² | −32.20 | −36.50 |
-| R² ≥ 0.95 | **17%** (17/100) | **22%** (22/100) |
+| **R² ≥ 0.95** (main metric) | **17%** (17/100) | **22%** (22/100) |
+| Median R² | 0.39 | 0.45 |
 | R² < 0 (catastrophic) | 38% | 33% |
 | DeSTrOI operator accuracy | — | **74.3%** |
-| Combined **better** (ΔR² > 0.005) | — | **42 / 100** |
-| Combined **worse** | — | **34 / 100** |
+| Head-to-head **wins** (ΔR² > 0.005) | — | **42 / 100** |
+| Head-to-head **losses** (ΔR² < −0.005) | — | **34 / 100** |
+| Similar (ΔR² within 0.005) | — | 24 / 100 |
+
+*Mean R² is **−32 / −36** here — ignore it. A few catastrophic misfits drag the average down; use **R²≥0.95** and **head-to-head wins** instead.*
 
 **CSV:** [three_way_benchmark_n100_seed0.csv](../results/three_way/three_way_benchmark_n100_seed0.csv) · **Figure:** [three_way_comparison_destroi_vocab.png](../results/three_way/figures/three_way_comparison_destroi_vocab.png)
 
-**When does masking help or hurt?**
+**Bottom line:** DeSTrOI masking gives a **small net gain** on this hard OOD benchmark — **+5 formulas** at R²≥0.95 (17→22), **42 wins vs 34 losses** head-to-head. Not a TPSR-level jump; masking helps when operator ID is right and hurts when it blocks a true operator.
 
-| Pattern | What happens |
-|---------|--------------|
-| DeSTrOI **correct** (high operator accuracy) | Combined often wins — fewer wrong token branches |
-| DeSTrOI **blocks a true operator** | Combined loses — transformer cannot recover the right structure |
-| **`inv` in formula** (n=52) | Worst case: mean R² −61.6 (trans) / −69.7 (comb) — Kamienny uses `div`, DeSTrOI uses `inv`; mismatch amplifies failures |
-| **`log` in formula** (n=57) | Mean R² −38.0 / −54.1 — nested `log`/`inv` trees are unstable for blind decode |
-| **`sin` in formula** (n=51) | Mean R² −63.5 / −71.8 — deep unary nesting → catastrophic negative R² |
-| **`sqrt` in formula** (n=55) | Transformer alone less bad (−0.3) but combined still dragged down (−55.7) when wrong ops blocked |
-| **Nested unaries** (mul + 2 unary ops, n=5) | Hardest structure — combined worse in 2/5 cases |
+**When does masking help or hurt?** (paired comparison on same 100 formulas)
+
+| Subgroup | n | Trans R²≥0.95 | Comb R²≥0.95 | Combined wins | Combined losses | Takeaway |
+|----------|---|-----------------|--------------|---------------|-----------------|----------|
+| **All formulas** | 100 | 17% | **22%** | 42 | 34 | Small net gain |
+| DeSTrOI acc **≥ 67%** | 49 | 16% | **24%** | 26 | 14 | Masking helps more when ID is confident |
+| DeSTrOI acc **< 67%** | 51 | 18% | 20% | 16 | **20** | Low-confidence ID → masking hurts more often |
+| has `sqrt` | 55 | 22% | **27%** | 23 | 14 | Clearest win for combined |
+| has `inv` | 52 | 17% | **21%** | 22 | 19 | Slight gain; `inv`/`div` vocab mismatch still hurts |
+| has `log` | 57 | 12% | **16%** | 25 | 19 | Modest gain |
+| has `sin` | 51 | 10% | **14%** | 25 | 15 | Modest gain despite hard nesting |
+| mul + 2 unary ops | 5 | 0% | 0% | 2 | 2 | Too few samples; both fail |
 
 ---
 
