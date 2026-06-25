@@ -305,38 +305,14 @@ Fitting data well ≠ finding the right formula.
 
 ### Proposed solution: MDLformer
 
-The authors introduce **MDLformer** — a Transformer trained **not to write equations**, but to estimate the **description length / complexity** of a dataset.
+The authors introduce **MDLformer** — a Transformer trained **not to write equations**, but to estimate the **description length / complexity** of a dataset. Same search machinery as other papers, but the **objective function** targets simplicity + truth, not raw fit.
 
-**Method (step by step):**
+**How it works:**
 
-1. **Synthetic training** — Kamienny-style generator creates millions of random formulas; each is evaluated on data points.
-2. **Learning the metric** — MDLformer looks at raw \((X,y)\) and predicts a single number: the ideal **description length** of the hidden equation.
-3. **Guided search** — On a new dataset, run **MCTS or GP**, but score branches with **MDL** (from MDLformer), not raw MSE/R².
-4. The search acts like a **metal detector** — it hunts formulas that match the short, elegant complexity MDLformer predicted for this data.
-
-**One-sentence summary:** Same search machinery as other papers, but the **objective function** targets simplicity + truth, not raw fit.
-
-#### How the search loop works in detail
-
-**Step 1 — Set the target complexity.** Before a single symbol is written, the raw dataset \((X, y)\) is passed through MDLformer once. It outputs one number: the *target description length* — e.g. "this dataset looks like it should be explained by a clean 15-bit equation." Every subsequent candidate formula is measured against this target; formulas longer or more bloated than the target are penalised.
-
-**Step 2 — Token-by-token autocomplete (MCTS).** The search builds the equation tree token by token, like phone autocomplete. At the first open slot it generates several candidate continuations — `sin(…)`, `x₁ + …`, `exp(…)`, etc.
-
-**Step 3 — Score each partial path with a two-part MDL filter.** Before expanding any branch further, each partial path gets an MDL score combining:
-- **Length check** — how many structural bits does this operator add? Is the path still shorter than the target?
-- **Fitness check** — a fast background optimisation checks whether this partial expression brings the curve closer to the data.
-
-Both terms are summed into a single MDL score per branch.
-
-**Step 4 — Lock in the winner, repeat.** The branch with the best MDL score is kept; the others are discarded. The process repeats — generate options for the next slot, score, select — until the tree reaches terminals (variables, constants) and the equation is complete.
-
-#### Where DeSTrOI plugs in
-
-SR4MDL's search starts with a **wide-open operator dictionary** — at Step 2 it generates options for every operator in its grammar. DeSTrOI can act as a pre-filter *before* Step 2 ever runs:
-
-> "DeSTrOI scans the data graph and detects, for example, that there are no wave or oscillatory patterns — meaning `sin` and `cos` are physically implausible. Those tokens are blocked before the first autocomplete step. The MCTS branching factor drops immediately, so the MDL search reaches the correct physics law faster and with fewer wasted evaluations."
-
-In concrete terms: if DeSTrOI correctly removes 2–3 operators from a 10-op grammar, each MCTS expansion node has ~20–30% fewer branches to score. Across thousands of iterations this compounds into a significant speedup — and because MDL already penalises complexity, a tighter operator set means fewer false-positive "short but wrong" formulas survive early pruning.
+1. **Set the target complexity.** The raw dataset \((X, y)\) is passed through MDLformer once before any search. It outputs one number: the *target description length* — e.g. "this data should be explained by a ~15-bit equation." Every candidate formula is measured against this target; bloated formulas are penalised.
+2. **Token-by-token autocomplete (MCTS).** The search builds the equation tree token by token. At each open slot it generates candidate continuations — `sin(…)`, `x₁ + …`, `exp(…)`, etc. — from a **wide-open operator dictionary**.
+3. **Score each partial path with a two-part MDL filter.** Each branch gets a score combining: (a) *length check* — how many structural bits does this operator add relative to the target? and (b) *fitness check* — does this partial expression bring the curve closer to the data? Both are summed into a single MDL score.
+4. **Lock in the winner, repeat.** The best-scoring branch is kept, the rest discarded. Repeat until the tree reaches terminals (variables, constants) and the equation is complete. The search acts like a **metal detector** — hunting formulas whose complexity matches what MDLformer predicted for this data.
 
 ### Results (published SRBench)
 
@@ -492,41 +468,27 @@ For wins (42), 12 also had at least one wrong block but the net effect was still
 **Setup:** 12 Feynman + 8 Strogatz · 75/25 split · seed=29910 · n_trees=10  
 **Script:** [`benchmark_srbench_20.py`](../benchmark_srbench_20.py) · problem list: [`benchmark_subset_20.json`](../datasets/srbench/benchmark_subset_20.json)
 
-#### Results vs published
+#### Results — all 20
 
-> **Note on operator accuracy:** the original 58% figure was computed against DeSTrOI's literal 6-op vocabulary, penalising it for not detecting `div`/`sub`/`pow` which are not in its training set. The corrected figure uses an operator mapping (`sub`→`{add,mul}`, `div`→`{inv,mul}`, `pow`→`{mul}`) so the ground-truth label matches DeSTrOI's actual vocabulary. See [`reanalyze_srbench_20.py`](../reanalyze_srbench_20.py) and [`srbench_destroi_ops.py`](../srbench_destroi_ops.py).
+> **Note on operator accuracy:** DeSTrOI's accuracy is computed using an operator mapping (`sub`→`{add,mul}`, `div`→`{inv,mul}`, `pow`→`{mul}`) so the ground-truth label matches DeSTrOI's actual vocabulary. See [`reanalyze_srbench_20.py`](../reanalyze_srbench_20.py).
 
 | Metric | E2E (ours) | DeSTrOI+E2E (ours) | Published E2E | Published TPSR (λ=0.1) |
 |--------|------------|---------------------|---------------|------------------------|
-| Mean R² (all 20) | 0.756 | 0.770 | — | — |
+| Mean R² | 0.756 | 0.770 | — | — |
 | Median R² | 0.967 | 0.968 | — | — |
 | R² ≥ 0.99 | **7 / 20** | 6 / 20 | Feynman **84.8%** · Strogatz **35.7%** (full benchmark) | Feynman **94.9%** · Strogatz **82.8%** |
 | R² ≥ 0.95 | 12 / 20 | 12 / 20 | — | — |
-| DeSTrOI op accuracy (original — misleading) | — | 57.5% | — | — |
-| DeSTrOI op accuracy (**mapped** — fair) | — | **62.5%** | — | — |
+| DeSTrOI op accuracy (mapped) | — | **62.5%** | — | — |
+| Head-to-head mean ΔR² | — | **+0.014** | — | — |
 
-#### By group — all 20 (E2E vs DeSTrOI+E2E)
+#### By group — Feynman vs Strogatz
 
 | Group | n | E2E R²≥0.99 | DeSTrOI+E2E R²≥0.99 | E2E mean R² | DeSTrOI+E2E mean R² |
 |-------|---|-------------|---------------------|-------------|---------------------|
 | Feynman | 12 | **7 / 12** (58%) | 6 / 12 (50%) | 0.963 | 0.967 |
 | Strogatz | 8 | **0 / 8** (0%) | 0 / 8 (0%) | 0.445 | 0.473 |
 
-**Head-to-head (all 20):** mean ΔR² **+0.014** · better 4 · worse 4 · similar 12
-
-#### Expressible-16 subset (fair DeSTrOI test)
-
-4 formulas genuinely outside DeSTrOI's grammar are excluded: `feynman_III_4_32`, `feynman_I_6_2`, `feynman_I_41_16` (all need `exp`), `strogatz_shearflow2` (needs `cos`). The remaining 16 use only operators rewritable into `{add, mul, inv, sqrt, log, sin}`.
-
-| Group | n | E2E R²≥0.99 | DeSTrOI+E2E R²≥0.99 | E2E mean R² | DeSTrOI+E2E mean R² |
-|-------|---|-------------|---------------------|-------------|---------------------|
-| Feynman | 9 | **5 / 9** (56%) | 4 / 9 (44%) | 0.956 | 0.951 |
-| Strogatz | 7 | **0 / 7** (0%) | 0 / 7 (0%) | 0.639 | 0.651 |
-
-**Head-to-head (expressible-16):** mean ΔR² **−0.001** · better 3 · worse 4 · similar 9  
-**DeSTrOI mapped accuracy (expressible-16): 61.5%**
-
-Notable wins: `strogatz_barmag2` (+0.33), `strogatz_bacres1` (+0.015). Notable losses: `strogatz_predprey1` (−0.15), `strogatz_vdp1` (−0.27).
+**Head-to-head (all 20):** better 4 · worse 4 · similar 12
 
 #### No-`div` subset — 7 problems (cleanest DeSTrOI test on SRBench)
 
